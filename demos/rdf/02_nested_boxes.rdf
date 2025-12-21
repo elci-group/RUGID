@@ -1,0 +1,25 @@
+@ontology nested_boxes {
+    @cell outer {
+        position: (100, 100, 0)
+        extent: (600, 400, 0)
+        fill: #2a4a7a
+        stroke: #ffffff
+        stroke-width: 4
+        
+        @cell middle {
+            position_p: (0.1, 0.1, 0)
+            extent_p: (0.8, 0.8, 0)
+            fill: #4a7a2a
+            stroke: #ffffff
+            stroke-width: 3
+            
+            @cell inner {
+                position_p: (0.2, 0.2, 0)
+                extent_p: (0.6, 0.6, 0)
+                fill: #7a2a4a
+                stroke: #ffffff
+                stroke-width: 2
+            }
+        }
+    }
+}

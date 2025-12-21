@@ -1,0 +1,16 @@
+/target
+output/
+demo_output/
+*.svg
+*.ppm
+*.txt
+!CMakeLists.txt
+!LICENSE.txt
+!README.txt
+!RUGID-ass.txt
+check_output.txt
+check_output_*.txt
+build_status.txt
+test.pdf
+*.old
+*.backup

@@ -1,0 +1,164 @@
+@ontology motion_3d_gallery {
+    @cell viewport {
+        position: (0, 0, 0)
+        extent: (1600, 900, 0)
+        fill: #0a0a1a
+        projection: perspective
+        camera_position: (800, 450, -600)
+        camera_fov: 75
+        
+        // Center rotating platform
+        @shape platform {
+            type: cylinder
+            position: (800, 700, 400)
+            extent: (600, 50, 600)
+            fill: #1a2a3a
+            stroke: #ffffff
+            stroke-width: 1
+            
+            @animation rotate_platform {
+                property: rotation
+                from: (0, 0, 0)
+                to: (0, 360, 0)
+                duration: 30s
+                loop: infinite
+                easing: linear
+            }
+        }
+        
+        // Gallery of shapes on platform
+        @shape cube_red {
+            type: cube
+            position: (600, 500, 400)
+            extent: (120, 120, 120)
+            fill: #ff3333
+            stroke: #ffffff
+            stroke-width: 2
+            
+            @animation spin_x {
+                property: rotation
+                from: (0, 0, 0)
+                to: (360, 0, 0)
+                duration: 4s
+                loop: infinite
+            }
+        }
+        
+        @shape sphere_green {
+            type: sphere
+            position: (800, 480, 250)
+            extent: (140, 140, 140)
+            fill: #33ff33
+            stroke: #ffffff
+            stroke-width: 2
+            
+            @animation bounce {
+                property: position
+                keyframes: [
+                    { time: 0s, position: (800, 480, 250) },
+                    { time: 1s, position: (800, 380, 250) },
+                    { time: 2s, position: (800, 480, 250) }
+                ]
+                duration: 2s
+                loop: infinite
+                easing: ease-in-out
+            }
+        }
+        
+        @shape tetra_blue {
+            type: tetrahedron
+            position: (1000, 500, 400)
+            extent: (130, 130, 130)
+            fill: #3333ff
+            stroke: #ffffff
+            stroke-width: 2
+            
+            @animation spin_xyz {
+                property: rotation
+                from: (0, 0, 0)
+                to: (360, 360, 360)
+                duration: 5s
+                loop: infinite
+            }
+        }
+        
+        @shape octa_yellow {
+            type: octahedron
+            position: (700, 500, 550)
+            extent: (110, 110, 110)
+            fill: #ffff33
+            stroke: #ffffff
+            stroke-width: 2
+            
+            @animation spin_y {
+                property: rotation
+                from: (0, 0, 0)
+                to: (0, 360, 0)
+                duration: 3s
+                loop: infinite
+            }
+        }
+        
+        @shape pyramid_magenta {
+            type: pyramid
+            position: (900, 500, 550)
+            extent: (120, 120, 120)
+            fill: #ff33ff
+            stroke: #ffffff
+            stroke-width: 2
+            
+            @animation wobble {
+                property: rotation
+                keyframes: [
+                    { time: 0s, rotation: (0, 0, -15) },
+                    { time: 1s, rotation: (0, 0, 15) },
+                    { time: 2s, rotation: (0, 0, -15) }
+                ]
+                duration: 2s
+                loop: infinite
+                easing: ease-in-out
+            }
+        }
+        
+        // Lighting
+        @light point {
+            position: (800, 200, 400)
+            intensity: 1.5
+            color: #ffffff
+            radius: 800
+            
+            @animation orbit {
+                property: position
+                keyframes: [
+                    { time: 0s, position: (800, 200, 400) },
+                    { time: 5s, position: (1200, 200, 400) },
+                    { time: 10s, position: (800, 200, 800) },
+                    { time: 15s, position: (400, 200, 400) },
+                    { time: 20s, position: (800, 200, 400) }
+                ]
+                duration: 20s
+                loop: infinite
+                easing: linear
+            }
+        }
+        
+        @light ambient {
+            intensity: 0.4
+            color: #2a4a6a
+        }
+        
+        // Title overlay
+        @cell title_overlay {
+            position: (800, 100, 0)
+            text: "RUGID 3D Motion Gallery"
+            text-size: 64
+            fill: #00ff88
+            text-anchor: middle
+            
+            @filter glow {
+                type: gaussian_blur
+                radius: 15
+            }
+        }
+    }
+}

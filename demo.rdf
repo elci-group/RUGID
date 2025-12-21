@@ -1,0 +1,13 @@
+#! /venv/bin/rugid
+
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║                         RUGID DEFINITION FILE (RDF)                          ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+
+# SECTION 1: WINDOW DEFINITION
+# Syntax: window:::title[name]::sdims[width,height,depth]
+window:::title[RDF Demo]::sdims[100,100,100]
+
+# SECTION 2: PANE LAYOUT
+# Syntax: pane:::id[name]::parent[parent_id]::origin[x,y]::extent[w,h]
+	pane:::id[mainpane]::parent[RDF Demo]::origin[0,0]::extent[1.0,1.0]::fill[#FF0000]

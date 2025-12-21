@@ -1,0 +1,79 @@
+@ontology multi_rotation {
+    @cell viewport {
+        position: (0, 0, 0)
+        extent: (1200, 400, 0)
+        fill: #0a0a1a
+        
+        @shape tetra {
+            type: tetrahedron
+            position: (200, 200, 150)
+            extent: (120, 120, 120)
+            fill: #ff4444
+            stroke: #ffffff
+            stroke-width: 2
+            
+            @animation spin_x {
+                property: rotation
+                from: (0, 0, 0)
+                to: (360, 0, 0)
+                duration: 3s
+                loop: infinite
+                easing: linear
+            }
+        }
+        
+        @shape cube {
+            type: cube
+            position: (450, 200, 150)
+            extent: (120, 120, 120)
+            fill: #44ff44
+            stroke: #ffffff
+            stroke-width: 2
+            
+            @animation spin_y {
+                property: rotation
+                from: (0, 0, 0)
+                to: (0, 360, 0)
+                duration: 3s
+                loop: infinite
+                easing: linear
+            }
+        }
+        
+        @shape octa {
+            type: octahedron
+            position: (700, 200, 150)
+            extent: (120, 120, 120)
+            fill: #4444ff
+            stroke: #ffffff
+            stroke-width: 2
+            
+            @animation spin_z {
+                property: rotation
+                from: (0, 0, 0)
+                to: (0, 0, 360)
+                duration: 3s
+                loop: infinite
+                easing: linear
+            }
+        }
+        
+        @shape pyramid {
+            type: pyramid
+            position: (950, 200, 150)
+            extent: (120, 120, 120)
+            fill: #ffff44
+            stroke: #ffffff
+            stroke-width: 2
+            
+            @animation spin_xyz {
+                property: rotation
+                from: (0, 0, 0)
+                to: (360, 360, 360)
+                duration: 4s
+                loop: infinite
+                easing: linear
+            }
+        }
+    }
+}

@@ -1,0 +1,135 @@
+@ontology media_player {
+    @cell window {
+        position: (0, 0, 0)
+        extent: (1200, 800, 0)
+        fill: #0a0a0a
+        
+        // Sidebar
+        @cell sidebar {
+            position: (0, 0, 0)
+            extent: (250, 800, 0)
+            fill: #151515
+            stroke: #333333
+            stroke-width: 1
+            
+            @cell logo {
+                position: (125, 30, 0)
+                text: "RUGID Player"
+                text-size: 24
+                fill: #00ff88
+                text-anchor: middle
+            }
+            
+            @cell menu {
+                position: (0, 80, 0)
+                extent: (250, 720, 0)
+                
+                @item home { position: (20, 20, 0); text: "🏠 Home"; fill: #00ff88 }
+                @item search { position: (20, 70, 0); text: "🔍 Search"; fill: #888888 }
+                @item library { position: (20, 120, 0); text: "📚 Library"; fill: #888888 }
+                @item playlists { position: (20, 170, 0); text: "🎵 Playlists"; fill: #888888 }
+            }
+        }
+        
+        // Main content area
+        @cell content {
+            position: (250, 0, 0)
+            extent: (950, 700, 0)
+            fill: #0a0a0a
+            
+            // Album art
+            @shape album_art {
+                type: rectangle
+                position: (350, 150, 0)
+                extent: (400, 400, 0)
+                fill: #ff00ff
+                stroke: #ffffff
+                stroke-width: 2
+                
+                @animation pulse {
+                    property: [extent, opacity]
+                    keyframes: [
+                        { time: 0s, extent: (400, 400, 0), opacity: 1.0 },
+                        { time: 0.5s, extent: (410, 410, 0), opacity: 0.9 },
+                        { time: 1s, extent: (400, 400, 0), opacity: 1.0 }
+                    ]
+                    duration: 1s
+                    loop: infinite
+                }
+            }
+            
+            @cell track_info {
+                position: (100, 570, 0)
+                
+                @cell title {
+                    position: (0, 0, 0)
+                    text: "Observer-Centric Symphony No. 1"
+                    text-size: 28
+                    fill: #ffffff
+                }
+                
+                @cell artist {
+                    position: (0, 40, 0)
+                    text: "RUGID Orchestra"
+                    text-size: 18
+                    fill: #888888
+                }
+            }
+        }
+        
+        // Player controls (bottom)
+        @cell player_bar {
+            position: (250, 700, 0)
+            extent: (950, 100, 0)
+            fill: #151515
+            stroke: #333333
+            stroke-width: 1
+            
+            // Progress bar
+            @cell progress {
+                position: (50, 20, 0)
+                extent: (850, 8, 0)
+                fill: #333333
+                
+                @cell progress_fill {
+                    position: (0, 0, 0)
+                    extent_p: (0.42, 1.0, 0)
+                    fill: #00ff88
+                    
+                    @animation progress_grow {
+                        property: extent_p
+                        from: (0.42, 1.0, 0)
+                        to: (1.0, 1.0, 0)
+                        duration: 60s
+                        easing: linear
+                    }
+                }
+            }
+            
+            // Control buttons
+            @cell controls {
+                position: (375, 45, 0)
+                extent: (200, 40, 0)
+                
+                @button prev { position: (0, 0, 0); extent: (40, 40, 0); text: "⏮"; fill: #333333 }
+                @button play { position: (50, 0, 0); extent: (40, 40, 0); text: "⏸"; fill: #00ff88 }
+                @button next { position: (100, 0, 0); extent: (40, 40, 0); text: "⏭"; fill: #333333 }
+            }
+            
+            // Time display
+            @cell time_display {
+                position: (50, 40, 0)
+                text: "1:23"
+                text-size: 14
+                fill: #888888
+            }
+            
+            @cell duration {  
+                position: (850, 40, 0)
+                text: "3:45"
+                text-size: 14
+                fill: #888888
+            }
+        }
+    }
+}

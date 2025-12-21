@@ -1,0 +1,61 @@
+@ontology text_morphism {
+    @cell viewport {
+        position: (0, 0, 0)
+        extent: (800, 600, 0)
+        fill: #0a0a0a
+        
+        @cell title {
+            position: (400, 200, 0)
+            text: "RUGID Engine"
+            text-size: 64
+            fill: #00ff88
+            text-anchor: middle
+            
+            @animation fade_in {
+                property: opacity
+                from: 0
+                to: 1
+                duration: 1s
+                easing: ease-in
+            }
+        }
+        
+        @cell subtitle {
+            position: (400, 300, 0)
+            text: "Reality Unveiled through Geometry and Infinite Detail"
+            text-size: 28
+            fill: #88ccff
+            text-anchor: middle
+            
+            @animation typewriter {
+                property: text-reveal
+                from: 0
+                to: 100%
+                duration: 4s
+                delay: 1s
+                easing: linear
+            }
+        }
+        
+        @cell footer {
+            position: (400, 450, 0)
+            text: "Observer-Centric Reality Solver"
+            text-size: 20
+            fill: #ff8888
+            text-anchor: middle
+            
+            @animation pulse {
+                property: text-size
+                keyframes: [
+                    { time: 0s, text-size: 20 },
+                    { time: 0.5s, text-size: 24 },
+                    { time: 1s, text-size: 20 }
+                ]
+                duration: 1s
+                delay: 5s
+                loop: infinite
+                easing: ease-in-out
+            }
+        }
+    }
+}

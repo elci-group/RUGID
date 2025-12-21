@@ -1,0 +1,52 @@
+@ontology platonic_solids {
+    @cell viewport {
+        position: (0, 0, 0)
+        extent: (1200, 400, 0)
+        fill: #1a1a2a
+        
+        @shape tetrahedron {
+            type: tetrahedron
+            position: (150, 200, 150)
+            extent: (120, 120, 120)
+            fill: #ff4444
+            stroke: #ffffff
+            stroke-width: 2
+        }
+        
+        @shape cube {
+            type: cube
+            position: (350, 200, 150)
+            extent: (120, 120, 120)
+            fill: #44ff44
+            stroke: #ffffff
+            stroke-width: 2
+        }
+        
+        @shape octahedron {
+            type: octahedron
+            position: (550, 200, 150)
+            extent: (120, 120, 120)
+            fill: #4444ff
+            stroke: #ffffff
+            stroke-width: 2
+        }
+        
+        @shape dodecahedron {
+            type: dodecahedron
+            position: (750, 200, 150)
+            extent: (120, 120, 120)
+            fill: #ffff44
+            stroke: #ffffff
+            stroke-width: 2
+        }
+        
+        @shape icosahedron {
+            type: icosahedron
+            position: (950, 200, 150)
+            extent: (120, 120, 120)
+            fill: #ff44ff
+            stroke: #ffffff
+            stroke-width: 2
+        }
+    }
+}

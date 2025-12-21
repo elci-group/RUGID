@@ -1,0 +1,316 @@
+<!-- RUGID Cornell Box Physics Demonstration -->
+<!-- Showcases: Elastic materials, water simulation, bouncing physics, advanced lighting -->
+
+<scene name="cornell_box_physics_demo">
+    <!-- Cornell Box Walls (Classic Setup) -->
+    
+    <!-- Back Wall (White) -->
+    <cell name="back_wall" type="quad">
+        <position x="0" y="1.5" z="-3.0" />
+        <extent-p width="3.0" height="3.0" />
+        <fill rgb(240, 240, 240) />
+        <diffuse intensity="0.8" />
+    </cell>
+    
+    <!-- Left Wall (Red) -->
+    <cell name="left_wall" type="quad">
+        <position x="-1.5" y="1.5" z="-1.5" />
+        <extent-p width="3.0" height="3.0" />
+        <rotation roll="0" pitch="0" yaw="90" />
+        <fill rgb(200, 50, 50) />
+        <diffuse intensity="0.8" />
+    </cell>
+    
+    <!-- Right Wall (Green) -->
+    <cell name="right_wall" type="quad">
+        <position x="1.5" y="1.5" z="-1.5" />
+        <extent-p width="3.0" height="3.0" />
+        <rotation roll="0" pitch="0" yaw="-90" />
+        <fill rgb(50, 200, 50) />
+        <diffuse intensity="0.8" />
+    </cell>
+    
+    <!-- Ceiling (White) -->
+    <cell name="ceiling" type="quad">
+        <position x="0" y="3.0" z="-1.5" />
+        <extent-p width="3.0" height="3.0" />
+        <rotation roll="90" pitch="0" yaw="0" />
+        <fill rgb(240, 240, 240) />
+        <diffuse intensity="0.8" />
+    </cell>
+    
+    <!-- Elasticated Floor (Bouncy, slightly blue tint) -->
+    <cell name="elastic_floor" type="quad">
+        <position x="0" y="0.0" z="-1.5" />
+        <extent-p width="3.0" height="3.0" />
+        <rotation roll="-90" pitch="0" yaw="0" />
+        <fill rgb(200, 220, 255) />
+        <diffuse intensity="0.6" />
+        <reflectivity>0.15</reflectivity>
+        
+        <!-- Elastic material properties -->
+        <material type="elastic">
+            <restitution>0.85</restitution> <!-- 85% energy return on bounce -->
+            <damping>0.05</damping>
+            <stiffness>500.0</stiffness>
+        </material>
+    </cell>
+    
+    <!-- Water Pool on Floor (Shallow layer, 5cm deep) -->
+    <cell name="water_pool" type="quad">
+        <position x="0" y="0.05" z="-1.5" />
+        <extent-p width="2.8" height="2.8" />
+        <rotation roll="-90" pitch="0" yaw="0" />
+        <fill rgba(100, 150, 255, 180) /> <!-- Semi-transparent blue -->
+        <fill-opacity>0.7</fill-opacity>
+        <reflectivity>0.35</reflectivity>
+        <refraction-index>1.33</refraction-index> <!-- Water IOR -->
+        
+        <!-- Water physics -->
+        <fluid type="water">
+            <viscosity>0.001</viscosity>
+            <surface-tension>0.073</surface-tension>
+            <depth>0.05</depth>
+        </fluid>
+        
+        <!-- Ripple animation (waves propagate from center) -->
+        <animation duration="4.0" loop="true">
+            <!-- Subtle wave motion -->
+            <keyframe at="0.0">
+                <position x="0" y="0.05" z="-1.5" />
+            </keyframe>
+            <keyframe at="1.0">
+                <position x="0" y="0.055" z="-1.5" />
+            </keyframe>
+            <keyframe at="2.0">
+                <position x="0" y="0.05" z="-1.5" />
+            </keyframe>
+            <keyframe at="3.0">
+                <position x="0" y="0.045" z="-1.5" />
+            </keyframe>
+            <keyframe at="4.0">
+                <position x="0" y="0.05" z="-1.5" />
+            </keyframe>
+        </animation>
+    </cell>
+    
+    <!-- Bouncing Ball (Sphere with complex physics) -->
+    <cell name="bouncing_ball" type="sphere">
+        <!-- Initial position: dropped from 2.5m height -->
+        <position x="0.0" y="2.5" z="-1.5" />
+        <extent-s radius="0.15" />
+        <fill rgb(255, 100, 100) /> <!-- Red ball -->
+        <diffuse intensity="0.7" />
+        <specular intensity="0.5" shininess="32" />
+        <reflectivity>0.25</reflectivity>
+        
+        <!-- Physics properties -->
+        <rigidbody>
+            <mass>0.5</mass> <!-- 500 grams -->
+            <gravity>9.81</gravity>
+            <air-resistance>0.02</air-resistance>
+            <angular-damping>0.1</angular-damping>
+        </rigidbody>
+        
+        <!-- Bounce Animation (Saw-tooth pattern upon rest) -->
+        <animation duration="10.0" loop="false">
+            <!-- Drop phase (0-0.7s): Free fall -->
+            <keyframe at="0.0">
+                <position x="0.0" y="2.5" z="-1.5" />
+                <velocity vy="-0.0" />
+            </keyframe>
+            
+            <!-- First bounce (0.71s) -->
+            <keyframe at="0.71">
+                <position x="0.0" y="0.20" z="-1.5" />
+                <velocity vy="-3.72" /> <!-- sqrt(2*g*h) -->
+                <on-contact surface="elastic_floor">
+                    <impulse vy="3.16" /> <!-- 85% energy return -->
+                    <splash-effect radius="0.3" intensity="0.5" />
+                </on-contact>
+            </keyframe>
+            
+            <!-- Second bounce (1.35s) - 85% height -->
+            <keyframe at="1.35">
+                <position x="0.0" y="1.96" z="-1.5" />
+            </keyframe>
+            <keyframe at="1.96">
+                <position x="0.0" y="0.20" z="-1.5" />
+                <on-contact surface="elastic_floor">
+                    <impulse vy="2.69" />
+                </on-contact>
+            </keyframe>
+            
+            <!-- Third bounce (2.51s) - 72% height -->
+            <keyframe at="2.51">
+                <position x="0.0" y="1.47" z="-1.5" />
+            </keyframe>
+            <keyframe at="3.03">
+                <position x="0.0" y="0.20" z="-1.5" />
+                <on-contact surface="elastic_floor">
+                    <impulse vy="2.29" />
+                </on-contact>
+            </keyframe>
+            
+            <!-- Fourth bounce (3.50s) - 61% height -->
+            <keyframe at="3.50">
+                <position x="0.0" y="1.10" z="-1.5" />
+            </keyframe>
+            <keyframe at="3.97">
+                <position x="0.0" y="0.20" z="-1.5" />
+                <on-contact surface="elastic_floor">
+                    <impulse vy="1.95" />
+                </on-contact>
+            </keyframe>
+            
+            <!-- Fifth bounce (4.37s) - 52% height -->
+            <keyframe at="4.37">
+                <position x="0.0" y="0.82" z="-1.5" />
+            </keyframe>
+            <keyframe at="4.78">
+                <position x="0.0" y="0.20" z="-1.5" />
+                <on-contact surface="elastic_floor">
+                    <impulse vy="1.65" />
+                </on-contact>
+            </keyframe>
+            
+            <!-- Sixth bounce (5.11s) - 44% height -->
+            <keyframe at="5.11">
+                <position x="0.0" y="0.62" z="-1.5" />
+            </keyframe>
+            <keyframe at="5.46">
+                <position x="0.0" y="0.20" z="-1.5" />
+                <on-contact surface="elastic_floor">
+                    <impulse vy="1.40" />
+                </on-contact>
+            </keyframe>
+            
+            <!-- Seventh bounce (5.75s) - Diminishing -->
+            <keyframe at="5.75">
+                <position x="0.0" y="0.46" z="-1.5" />
+            </keyframe>
+            <keyframe at="6.05">
+                <position x="0.0" y="0.20" z="-1.5" />
+                <on-contact surface="elastic_floor">
+                    <impulse vy="1.19" />
+                </on-contact>
+            </keyframe>
+            
+            <!-- Eighth bounce (6.29s) -->
+            <keyframe at="6.29">
+                <position x="0.0" y="0.35" z="-1.5" />
+            </keyframe>
+            <keyframe at="6.56">
+                <position x="0.0" y="0.20" z="-1.5" />
+                <on-contact surface="elastic_floor">
+                    <impulse vy="1.01" />
+                </on-contact>
+            </keyframe>
+            
+            <!-- Final small bounces (6.77s onwards) - saw-tooth pattern -->
+            <keyframe at="6.77">
+                <position x="0.0" y="0.27" z="-1.5" />
+            </keyframe>
+            <keyframe at="7.00">
+                <position x="0.0" y="0.20" z="-1.5" />
+            </keyframe>
+            <keyframe at="7.20">
+                <position x="0.0" y="0.22" z="-1.5" />
+            </keyframe>
+            <keyframe at="7.40">
+<position x="0.0" y="0.20" z="-1.5" />
+            </keyframe>
+            <keyframe at="7.55">
+                <position x="0.0" y="0.205" z="-1.5" />
+            </keyframe>
+            
+            <!-- Rest (8.0s) -->
+            <keyframe at="8.0">
+                <position x="0.0" y="0.20" z="-1.5" />
+                <velocity vy="0.0" />
+            </keyframe>
+        </animation>
+        
+        <!-- Rotation during bounce (adds realism) -->
+        <animation duration="10.0" loop="false">
+            <keyframe at="0.0">
+                <rotation roll="0" pitch="0" yaw="0" />
+            </keyframe>
+            <keyframe at="10.0">
+                <rotation roll="360" pitch="0" yaw="0" />
+            </keyframe>
+        </animation>
+    </cell>
+    
+    <!-- Definitive Lighting Setup -->
+    
+    <!-- Main Area Light (Top center, bright white) -->
+    <light name="area_light_main" type="area">
+        <position x="0.0" y="2.95" z="-1.5" />
+        <extent-p width="0.8" height="0.8" />
+        <color rgb(255, 255, 255) />
+        <intensity>1.0</intensity>
+        <samples>16</samples> <!-- High quality soft shadows -->
+    </light>
+    
+    <!-- Fill Light (Subtle, from upper left) -->
+    <light name="fill_light" type="point">
+        <position x="-1.0" y="2.5" z="-0.5" />
+        <color rgb(255, 240, 230) /> <!-- Warm white -->
+        <intensity>0.3</intensity>
+        <attenuation constant="1.0" linear="0.09" quadratic="0.032" />
+    </light>
+    
+    <!-- Rim Light (Upper right, adds depth) -->
+    <light name="rim_light" type="point">
+        <position x="1.0" y="2.5" z="-0.5" />
+        <color rgb(230, 240, 255) /> <!-- Cool white -->
+        <intensity>0.25</intensity>
+        <attenuation constant="1.0" linear="0.09" quadratic="0.032" />
+    </light>
+    
+    <!-- Ground Light (Reflects from water) -->
+    <light name="water_bounce_light" type="point">
+        <position x="0.0" y="0.1" z="-1.5" />
+        <color rgb(150, 200, 255) /> <!-- Blue tint from water -->
+        <intensity>0.15</intensity>
+        <attenuation constant="1.0" linear="0.22" quadratic="0.20" />
+    </light>
+    
+    <!-- Ambient Occlusion -->
+    <ambient-light>
+        <color rgb(50, 50, 55) />
+        <intensity>0.1</intensity>
+    </ambient-light>
+    
+    <!-- Global Illumination Settings -->
+    <radiosity>
+        <bounces>3</bounces>
+        <samples>256</samples>
+        <quality>high</quality>
+    </radiosity>
+    
+    <!-- Shadow Settings -->
+    <shadows>
+        <type>raytraced</type>
+        <resolution>2048</resolution>
+        <softness>0.5</softness>
+    </shadows>
+    
+    <!-- Camera Setup -->
+    <camera name="main_camera">
+        <position x="0.0" y="1.5" z="2.5" />
+        <look-at x="0.0" y="1.0" z="-1.5" />
+        <fov>60</fov>
+        <near>0.1</near>
+        <far>100.0</far>
+    </camera>
+    
+    <!-- Render Settings -->
+    <render>
+        <anti-aliasing samples="8" />
+        <resolution width="1920" height="1080" />
+        <framerate>60</framerate>
+        <quality>ultra</quality>
+    </render>
+</scene>

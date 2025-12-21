@@ -1,0 +1,71 @@
+@ontology collision {
+    @cell viewport {
+        position: (0, 0, 0)
+        extent: (800, 600, 0)
+        fill: #000000
+        
+        // Ground platform
+        @shape ground {
+            type: rectangle
+            position: (0, 550, 0)
+            extent: (800, 50, 0)
+            fill: #333333
+            stroke: #ffffff
+            stroke-width: 2
+            
+            @physics {
+                static: true
+                friction: 0.3
+            }
+        }
+        
+        // Bouncing ball
+        @shape ball {
+            type: sphere
+            position: (100, 100, 100)
+            extent: (50, 50, 50)
+            fill: #ff4444
+            stroke: #ffffff
+            stroke-width: 2
+            
+            @physics {
+                velocity: (200, 0, 0)
+                acceleration: (0, 400, 0)  // gravity
+                elasticity: 0.8
+                friction: 0.05
+                mass: 1.0
+            }
+            
+            @collision {
+                type: sphere
+                bounds: viewport
+                response: bounce
+                detect: [ground, wall_left, wall_right]
+            }
+        }
+        
+        // Left wall
+        @shape wall_left {
+            type: rectangle
+            position: (0, 0, 0)
+            extent: (5, 600, 0)
+            fill: #444444
+            
+            @physics {
+                static: true
+            }
+        }
+        
+        // Right wall
+        @shape wall_right {
+            type: rectangle
+            position: (795, 0, 0)
+            extent: (5, 600, 0)
+            fill: #444444
+            
+            @physics {
+                static: true
+            }
+        }
+    }
+}

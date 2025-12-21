@@ -1,0 +1,82 @@
+@ontology calculator {
+    @cell window {
+        position: (0, 0, 0)
+        extent: (400, 600, 0)
+        fill: #1a1a1a
+        
+        // Display panel
+        @cell display {
+            position: (20, 20, 0)
+            extent: (360, 100, 0)
+            fill: #2a2a2a
+            stroke: #444444
+            stroke-width: 2
+            
+            @cell result_text {
+                position_p: (0.95, 0.5, 0)
+                text: "42"
+                text-size: 48
+                fill: #00ff88
+                text-anchor: end
+            }
+        }
+        
+        // Button grid (4x5)
+        @cell button_grid {
+            position: (20, 140, 0)
+            extent: (360, 440, 0)
+            
+            // Row 1
+            @button btn_clear { position: (0, 0, 0); extent: (80, 80, 0); text: "C"; fill: #ff4444 }
+            @button btn_sign { position: (90, 0, 0); extent: (80, 80, 0); text: "±"; fill: #888888 }
+            @button btn_percent { position: (180, 0, 0); extent: (80, 80, 0); text: "%"; fill: #888888 }
+            @button btn_divide { position: (270, 0, 0); extent: (80, 80, 0); text: "÷"; fill: #ff8800 }
+            
+            // Row 2
+            @button btn_7 { position: (0, 90, 0); extent: (80, 80, 0); text: "7"; fill: #555555 }
+            @button btn_8 { position: (90, 90, 0); extent: (80, 80, 0); text: "8"; fill: #555555 }
+            @button btn_9 { position: (180, 90, 0); extent: (80, 80, 0); text: "9"; fill: #555555 }
+            @button btn_multiply { position: (270, 90, 0); extent: (80, 80, 0); text: "×"; fill: #ff8800 }
+            
+            // Row 3
+            @button btn_4 { position: (0, 180, 0); extent: (80, 80, 0); text: "4"; fill: #555555 }
+            @button btn_5 { position: (90, 180, 0); extent: (80, 80, 0); text: "5"; fill: #555555 }
+            @button btn_6 { position: (180, 180, 0); extent: (80, 80, 0); text: "6"; fill: #555555 }
+            @button btn_minus { position: (270, 180, 0); extent: (80, 80, 0); text: "−"; fill: #ff8800 }
+            
+            // Row 4
+            @button btn_1 { position: (0, 270, 0); extent: (80, 80, 0); text: "1"; fill: #555555 }
+            @button btn_2 { position: (90, 270, 0); extent: (80, 80, 0); text: "2"; fill: #555555 }
+            @button btn_3 { position: (180, 270, 0); extent: (80, 80, 0); text: "3"; fill: #555555 }
+            @button btn_plus { position: (270, 270, 0); extent: (80, 80, 0); text: "+"; fill: #ff8800 }
+            
+            // Row 5
+            @button btn_0 { position: (0, 360, 0); extent: (170, 80, 0); text: "0"; fill: #555555 }
+            @button btn_decimal { position: (180, 360, 0); extent: (80, 80, 0); text: "."; fill: #555555 }
+            @button btn_equals { position: (270, 360, 0); extent: (80, 80, 0); text: "="; fill: #00cc66 }
+        }
+    }
+}
+
+// Button template (would be defined in RDF spec)
+@template button {
+    type: cell
+    stroke: #666666
+    stroke-width: 1
+    
+    @cell label {
+        position_p: (0.5, 0.5, 0)
+        text-size: 32
+        fill: #ffffff
+        text-anchor: middle
+    }
+    
+    @interaction hover {
+        fill: lighten(fill, 10%)
+    }
+    
+    @interaction press {
+        fill: darken(fill, 10%)
+        transform: scale(0.95)
+    }
+}

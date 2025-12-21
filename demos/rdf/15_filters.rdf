@@ -1,0 +1,83 @@
+@ontology filters {
+    @cell viewport {
+        position: (0, 0, 0)
+        extent: (800, 600, 0)
+        fill: #000000
+        
+        // Glowing text with bloom effect
+        @cell title {
+            position: (400, 200, 0)
+            text: "RUGID"
+            text-size: 128
+            fill: #00ffff
+            text-anchor: middle
+            
+            @filter glow {
+                type: gaussian_blur
+                radius: 20
+                iterations: 3
+            }
+            
+            @filter bloom {
+                type: bloom
+                threshold: 0.8
+                intensity: 2.5
+                radius: 30
+            }
+        }
+        
+        // Pulsing shape with glow
+        @shape cube {
+            type: cube
+            position: (400, 450, 150)
+            extent: (100, 100, 100)
+            fill: #ff00ff
+            stroke: #ffffff
+            stroke-width: 2
+            
+            @animation pulse {
+                property: extent
+                keyframes: [
+                    { time: 0s, extent: (100, 100, 100) },
+                    { time: 0.75s, extent: (150, 150, 150) },
+                    { time: 1.5s, extent: (100, 100, 100) }
+                ]
+                duration: 1.5s
+                loop: infinite
+                easing: ease-in-out
+            }
+            
+            @animation rotate {
+                property: rotation
+                from: (0, 0, 0)
+                to: (360, 360, 360)
+                duration: 4s
+                loop: infinite
+                easing: linear
+            }
+            
+            @filter glow {
+                type: gaussian_blur
+                radius: 15
+                intensity: 1.5
+            }
+        }
+        
+        // Background particles with blur
+        @cell particles {
+            position: (0, 0, 0)
+            extent: (800, 600, 0)
+            
+            @particle p1 { position: (100, 100, 0); size: 3; fill: #ffffff; opacity: 0.6 }
+            @particle p2 { position: (200, 150, 0); size: 2; fill: #ffffff; opacity: 0.4 }
+            @particle p3 { position: (600, 200, 0); size: 4; fill: #ffffff; opacity: 0.7 }
+            @particle p4 { position: (700, 400, 0); size: 2; fill: #ffffff; opacity: 0.5 }
+            
+            @filter motion_blur {
+                type: motion_blur
+                angle: 45
+                distance: 10
+            }
+        }
+    }
+}

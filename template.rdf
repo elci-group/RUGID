@@ -1,0 +1,251 @@
+#! /venv/bin/rugid
+
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║                         RUGID DEFINITION FILE (RDF)                          ║
+# ║                              Version 2.0 Spec                                ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+#
+# Schema Overview:
+#   - Lines beginning with # are comments
+#   - Indentation (tabs) defines parent-child hierarchy
+#   - ::: separates element class from attributes
+#   - :: separates individual attributes
+#   - [value] contains attribute values
+#   - All dimensions are relative (0.0-1.0) unless marked with 'px' suffix
+#
+# Asset Class Hierarchy (strictly enforced):
+#   Window (Class 1) → Pane (Class 2) → Widget (Class 3) → Content (Class 4)
+#   Panes may contain other Panes for layout nesting.
+
+# ════════════════════════════════════════════════════════════════════════════════
+# SECTION 1: WINDOW DEFINITION
+# ════════════════════════════════════════════════════════════════════════════════
+# 
+# Syntax: window:::title[name]::sdims[width,height] or sdims[width,height,depth]
+# 
+# - sdims values are screen-relative percentages (100 = 100% of screen)
+# - For 3D projects, provide three values: [width,height,depth]
+
+window:::title[Media Player]::sdims[100,100]
+
+# ════════════════════════════════════════════════════════════════════════════════
+# SECTION 2: PANE LAYOUT
+# ════════════════════════════════════════════════════════════════════════════════
+#
+# Syntax: pane:::id[name]::parent[parent_id]::origin[x,y]::extent[w,h]
+#
+# - id: unique identifier for parent-child linking
+# - parent: must match an existing window or pane id
+# - origin: starting position as fraction of parent (0.0-1.0)
+# - extent: size as fraction of parent (0.0-1.0)
+# - stack: optional, 'p' for primary(vertical) or 's' for secondary(horizontal)
+#
+# Note: This uses origin+extent model matching OntologyNode's LocalSpace
+
+	pane:::id[menubar]::parent[Media Player]::origin[0,0]::extent[1.0,0.05]::stack[s]
+	pane:::id[sidebar]::parent[Media Player]::origin[0,0.05]::extent[0.15,0.95]::stack[p]
+	pane:::id[mainpane]::parent[Media Player]::origin[0.15,0.05]::extent[0.85,0.95]::stack[p]
+
+# ════════════════════════════════════════════════════════════════════════════════
+# SECTION 3: WIDGETS
+# ════════════════════════════════════════════════════════════════════════════════
+#
+# Syntax: widget:::id[name]::parent[pane_id]::origin[x,y]::extent[w,h]
+#
+# Optional attributes:
+#   - fill[color]: background color (rgb, hex, or named)
+#   - radius[r]: corner radius for rounded rectangles (0.0-1.0 relative)
+#   - shape[type]: circle, rounded, rectangle (default)
+#   - opacity[value]: 0.0 (transparent) to 1.0 (opaque)
+#   - clip: enables clipping for children
+
+	pane:::id[menubar]::parent[Media Player]::origin[0,0]::extent[1.0,0.05]::stack[s]
+		widget:::id[logo_area]::parent[menubar]::extent[0.1,1.0]::fill[#1a1a1a]
+		widget:::id[menu_file]::parent[menubar]::extent[0.08,1.0]::fill[#252526]
+		widget:::id[menu_edit]::parent[menubar]::extent[0.08,1.0]::fill[#252526]
+		widget:::id[search_bar]::parent[menubar]::extent[0.4,1.0]::fill[#3c3c3c]::radius[0.3]
+		widget:::id[spacer]::parent[menubar]::extent[flex,1.0]
+		widget:::id[user_avatar]::parent[menubar]::extent[0.05,1.0]::shape[circle]
+
+# ════════════════════════════════════════════════════════════════════════════════  
+# SECTION 4: CONTENT (Text, Images, etc.)
+# ════════════════════════════════════════════════════════════════════════════════
+#
+# Syntax: text:::parent[widget_id]::value[content]::font[family]::size[pct]
+#
+# Text attributes:
+#   - value: the text content
+#   - font: font family name (ubuntu, inter, roboto, etc.)
+#   - size: font size as percentage of parent HEIGHT (0.0-1.0)
+#   - color: text color
+#   - align: text alignment (start, center, end)
+#   - baseline: vertical alignment (top, middle, bottom)
+#   - weight: font weight (normal, bold, 100-900)
+
+	pane:::id[menubar]::parent[Media Player]::origin[0,0]::extent[1.0,0.05]::stack[s]
+		widget:::id[menu_file]::parent[menubar]::extent[0.08,1.0]::fill[#252526]
+			text:::parent[menu_file]::value[File]::font[inter]::size[0.5]::color[#ffffff]::align[center]::baseline[middle]
+
+# ════════════════════════════════════════════════════════════════════════════════
+# SECTION 5: ANIMATION - MOVEMENT
+# ════════════════════════════════════════════════════════════════════════════════
+#
+# Movement Types:
+#   ~     Singular: object moves and stays at destination
+#   {~}   Rebound: object bounces back and forth (yoyo)
+#   [~]   Sawtooth: object teleports back to origin after reaching destination
+#
+# Syntax: ::move[from_x,from_y]~[to_x,to_y]::duration[frames]
+#         ::move[from_x,from_y]{~}[to_x,to_y]::duration[frames]
+#         ::move[from_x,from_y][~][to_x,to_y]::duration[frames]
+#
+# - Positions are relative to the widget's parent (0.0-1.0)
+# - Duration is in frames (at 60fps = ~16.67ms per frame)
+# - For 3D movement, use [x,y,z] coordinates
+
+	pane:::id[mainpane]::parent[Media Player]::origin[0.15,0.05]::extent[0.85,0.95]
+		widget:::id[sliding_panel]::parent[mainpane]::origin[0,0]::extent[0.3,1.0]::fill[#2d2d2d]
+			::move[0,0]~[0.7,0]::duration[60]
+			# This panel slides from left to 70% across over 1 second (60 frames)
+
+		widget:::id[breathing_orb]::parent[mainpane]::origin[0.5,0.5]::extent[0.1,0.1]::shape[circle]::fill[#007acc]
+			::move[0.5,0.5]{~}[0.5,0.3]::duration[120]
+			# Orb bobs up and down infinitely
+
+# External path files for complex animations:
+#   ::move[[@{path_to_animation.path}]]
+# Path files contain keyframe sequences (format TBD)
+
+# ════════════════════════════════════════════════════════════════════════════════
+# SECTION 6: ANIMATION - ROTATION
+# ════════════════════════════════════════════════════════════════════════════════
+#
+# Rotation Axes: rotatex (pitch), rotatey (yaw), rotatez (roll)
+#
+# Syntax mirrors movement:
+#   ::rotatex~[angle]::duration[frames]          Rotate to angle and stop
+#   ::rotatex{~}[angle]::duration[frames]        Rock back and forth
+#   ::rotatex[~][angle]::duration[frames]        Spin continuously (sawtooth)
+#   ::rotatex[speed]                              Continuous rotation at speed (deg/frame)
+#
+# Angles are in degrees (0-360)
+
+	pane:::id[mainpane]::parent[Media Player]::origin[0.15,0.05]::extent[0.85,0.95]
+		widget:::id[spinning_logo]::parent[mainpane]::origin[0.45,0.45]::extent[0.1,0.1]::fill[#ff6b6b]
+			::rotatez[2.0]
+			# Continuous rotation at 2 degrees per frame (120 deg/sec at 60fps)
+
+		widget:::id[tilting_card]::parent[mainpane]::origin[0.3,0.3]::extent[0.2,0.3]::fill[#4ecdc4]::radius[0.05]
+			::rotatex{~}[15]::duration[60]
+			# Card tilts 15 degrees forward then back
+
+# ════════════════════════════════════════════════════════════════════════════════
+# SECTION 7: OPACITY & VISIBILITY
+# ════════════════════════════════════════════════════════════════════════════════
+#
+# Static opacity:
+#   ::opacity[value]   where value is 0.0 (invisible) to 1.0 (fully opaque)
+#
+# Animated opacity (fade):
+#   ::fade[from]~[to]::duration[frames]
+#   ::fade[from]{~}[to]::duration[frames]   Pulse effect
+
+	pane:::id[mainpane]::parent[Media Player]::origin[0.15,0.05]::extent[0.85,0.95]
+		widget:::id[ghost_panel]::parent[mainpane]::origin[0,0]::extent[1.0,1.0]::fill[#000000]::opacity[0.5]
+			# Semi-transparent overlay
+
+		widget:::id[fading_notification]::parent[mainpane]::origin[0.7,0.1]::extent[0.25,0.1]::fill[#2ecc71]
+			::fade[0.0]~[1.0]::duration[30]
+			# Notification fades in over 0.5 seconds
+
+# ════════════════════════════════════════════════════════════════════════════════
+# SECTION 8: 3D WIDGETS
+# ════════════════════════════════════════════════════════════════════════════════
+#
+# 3D shapes are defined with shape3d element:
+#
+# Syntax: shape3d:::id[name]::parent[pane_id]::type[cube|pyramid|sphere|...]
+#                 ::origin[x,y]::extent[w,h]::size[scale]::opacity[value]
+#
+# 3D-specific attributes:
+#   - type: cube, pyramid, tetrahedron, octahedron, icosahedron, dodecahedron
+#   - size: scale factor relative to widget bounds
+#   - All rotation attributes work in 3D space
+
+window:::title[3D Demo]::sdims[100,100,100]
+	pane:::id[viewport]::parent[3D Demo]::origin[0,0]::extent[1.0,1.0]
+		shape3d:::id[rotating_cube]::parent[viewport]::type[cube]::origin[0.5,0.5]::size[0.3]::opacity[0.8]
+			::rotatex[1.0]::rotatey[0.5]
+
+		shape3d:::id[orbiting_pyramid]::parent[viewport]::type[pyramid]::origin[0.5,0.5]::size[0.15]
+			::orbit[radius:0.2,speed:0.02,axis:y]
+			# Orbits around the Y axis at radius 0.2, speed 0.02 rad/frame
+
+# ════════════════════════════════════════════════════════════════════════════════
+# SECTION 9: PHYSICS (Optional)
+# ════════════════════════════════════════════════════════════════════════════════
+#
+# Physics-enabled widgets respond to forces and collisions:
+#
+# Syntax: ::physics[mass]::material[restitution,friction,tension]
+#         ::magnetic[strength,axis_x,axis_y,axis_z]
+
+	pane:::id[physics_demo]::parent[Media Player]::origin[0,0]::extent[1.0,1.0]
+		widget:::id[bouncy_ball]::parent[physics_demo]::origin[0.5,0.1]::extent[0.05,0.05]::shape[circle]::fill[#e74c3c]
+			::physics[1.0]::material[0.8,0.3,0.0]
+			# Mass 1.0, high restitution (bouncy), low friction
+
+# ════════════════════════════════════════════════════════════════════════════════
+# SECTION 10: EVENT BINDINGS (Future)
+# ════════════════════════════════════════════════════════════════════════════════
+#
+# Event handlers link user input to animations or state changes:
+#
+# Syntax: ::on[event_type]::trigger[animation_id]
+#         ::on[hover]::set[opacity:1.0]
+#         ::on[click]::emit[signal_name]
+#
+# This section is reserved for future implementation.
+
+# ════════════════════════════════════════════════════════════════════════════════
+# COMPLETE EXAMPLE: Media Player UI
+# ════════════════════════════════════════════════════════════════════════════════
+
+window:::title[RUGID Player]::sdims[100,100]
+
+	# Top menubar - horizontal stack
+	pane:::id[menubar]::parent[RUGID Player]::origin[0,0]::extent[1.0,0.04]::stack[s]::fill[#1e1e1e]
+		widget:::id[app_icon]::parent[menubar]::extent[0.03,1.0]::fill[#007acc]
+		widget:::id[menu_file]::parent[menubar]::extent[0.05,1.0]::fill[#1e1e1e]
+			text:::parent[menu_file]::value[File]::size[0.5]::color[#cccccc]::align[center]::baseline[middle]
+		widget:::id[menu_view]::parent[menubar]::extent[0.05,1.0]::fill[#1e1e1e]
+			text:::parent[menu_view]::value[View]::size[0.5]::color[#cccccc]::align[center]::baseline[middle]
+		widget:::id[spacer1]::parent[menubar]::extent[flex,1.0]
+		widget:::id[search]::parent[menubar]::extent[0.2,0.8]::fill[#3c3c3c]::radius[0.4]::origin[0,0.1]
+			text:::parent[search]::value[Search...]::size[0.4]::color[#808080]::align[start]
+
+	# Left sidebar - vertical stack  
+	pane:::id[sidebar]::parent[RUGID Player]::origin[0,0.04]::extent[0.12,0.96]::stack[p]::fill[#252526]
+		widget:::id[nav_home]::parent[sidebar]::extent[1.0,0.05]::fill[#37373d]
+			text:::parent[nav_home]::value[🏠 Home]::size[0.4]::color[#ffffff]::align[start]
+		widget:::id[nav_library]::parent[sidebar]::extent[1.0,0.05]::fill[#252526]
+			text:::parent[nav_library]::value[📚 Library]::size[0.4]::color[#cccccc]::align[start]
+		widget:::id[nav_playlists]::parent[sidebar]::extent[1.0,0.05]::fill[#252526]
+			text:::parent[nav_playlists]::value[🎵 Playlists]::size[0.4]::color[#cccccc]::align[start]
+
+	# Main content area
+	pane:::id[content]::parent[RUGID Player]::origin[0.12,0.04]::extent[0.88,0.86]::fill[#1a1a1a]
+		widget:::id[album_art]::parent[content]::origin[0.35,0.1]::extent[0.3,0.5]::fill[#333333]::radius[0.02]
+		widget:::id[now_playing]::parent[content]::origin[0.3,0.65]::extent[0.4,0.08]
+			text:::parent[now_playing]::value[Now Playing]::size[0.6]::color[#ffffff]::align[center]::weight[bold]
+
+	# Bottom transport controls
+	pane:::id[transport]::parent[RUGID Player]::origin[0.12,0.9]::extent[0.88,0.1]::stack[s]::fill[#1e1e1e]
+		widget:::id[btn_prev]::parent[transport]::extent[0.08,1.0]
+			text:::parent[btn_prev]::value[⏮]::size[0.5]::color[#ffffff]::align[center]::baseline[middle]
+		widget:::id[btn_play]::parent[transport]::extent[0.08,1.0]::fill[#007acc]::radius[0.5]
+			text:::parent[btn_play]::value[▶]::size[0.5]::color[#ffffff]::align[center]::baseline[middle]
+		widget:::id[btn_next]::parent[transport]::extent[0.08,1.0]
+			text:::parent[btn_next]::value[⏭]::size[0.5]::color[#ffffff]::align[center]::baseline[middle]
+		widget:::id[progress_bar]::parent[transport]::extent[flex,0.3]::fill[#3c3c3c]::radius[0.5]::origin[0,0.35]
+		widget:::id[volume]::parent[transport]::extent[0.1,0.3]::fill[#3c3c3c]::radius[0.5]::origin[0,0.35]

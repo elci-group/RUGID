@@ -1,0 +1,15 @@
+@ontology hello_world {
+    @cell root {
+        position: (0, 0, 0)
+        extent: (800, 600, 0)
+        fill: #1a1a1a
+        
+        @cell text {
+            position: (400, 300, 0)
+            text: "Hello, RUGID!"
+            text-size: 48
+            fill: #00ff88
+            text-anchor: middle
+        }
+    }
+}

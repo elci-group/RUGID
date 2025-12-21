@@ -1,0 +1,17 @@
+@ontology basic_cube {
+    @cell viewport {
+        position: (0, 0, 0)
+        extent: (800, 600, 0)
+        fill: #000000
+        
+        @shape cube {
+            type: cube
+            position: (400, 300, 200)
+            extent: (200, 200, 200)
+            fill: #3a7ac8
+            stroke: #ffffff
+            stroke-width: 2
+            projection: orthographic
+        }
+    }
+}

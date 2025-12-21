@@ -1,0 +1,46 @@
+@ontology complex_geometry {
+    @cell viewport {
+        position: (0, 0, 0)
+        extent: (800, 600, 0)
+        fill: #0d1117
+        
+        @shape jabulani {
+            type: jabulani
+            position: (400, 300, 200)
+            extent: (300, 300, 300)
+            fill: #ffffff
+            stroke: #000000
+            stroke-width: 2
+            
+            // Jabulani has 8 thermally bonded panels
+            @panel panel_1 { fill: #ff0000 }
+            @panel panel_2 { fill: #00ff00 }
+            @panel panel_3 { fill: #0000ff }
+            @panel panel_4 { fill: #ffff00 }
+            @panel panel_5 { fill: #ff00ff }
+            @panel panel_6 { fill: #00ffff }
+            @panel panel_7 { fill: #ff8800 }
+            @panel panel_8 { fill: #8800ff }
+            
+            @animation rotate_slow {
+                property: rotation
+                from: (0, 0, 0)
+                to: (360, 360, 360)
+                duration: 10s
+                loop: infinite
+                easing: linear
+            }
+        }
+        
+        @light directional {
+            direction: (-1, -1, -1)
+            intensity: 0.8
+            color: #ffffff
+        }
+        
+        @light ambient {
+            intensity: 0.3
+            color: #88ccff
+        }
+    }
+}

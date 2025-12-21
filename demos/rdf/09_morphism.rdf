@@ -1,0 +1,39 @@
+@ontology morphism {
+    @cell viewport {
+        position: (0, 0, 0)
+        extent: (800, 600, 0)
+        fill: #1a0a2a
+        
+        @shape morphing {
+            type: cube
+            position: (400, 300, 200)
+            extent: (150, 150, 150)
+            fill: #ff0000
+            stroke: #ffffff
+            stroke-width: 2
+            
+            @animation morph_cycle {
+                property: [type, extent, fill]
+                keyframes: [
+                    { time: 0s, type: cube, extent: (150, 150, 150), fill: #ff0000 },
+                    { time: 2s, type: sphere, extent: (180, 180, 180), fill: #00ff00 },
+                    { time: 4s, type: tetrahedron, extent: (200, 200, 200), fill: #0000ff },
+                    { time: 6s, type: octahedron, extent: (160, 160, 160), fill: #ffff00 },
+                    { time: 8s, type: cube, extent: (150, 150, 150), fill: #ff0000 }
+                ]
+                duration: 8s
+                loop: infinite
+                easing: ease-in-out
+            }
+            
+            @animation spin {
+                property: rotation
+                from: (0, 0, 0)
+                to: (360, 360, 360)
+                duration: 8s
+                loop: infinite
+                easing: linear
+            }
+        }
+    }
+}

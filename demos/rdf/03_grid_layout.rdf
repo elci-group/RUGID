@@ -1,0 +1,56 @@
+@ontology grid_layout {
+    @cell container {
+        position: (0, 0, 0)
+        extent: (800, 600, 0)
+        fill: #1a1a1a
+        
+        // 3x2 grid of colored squares
+        @cell sq_1 {
+            position: (100, 100, 0)
+            extent: (150, 150, 0)
+            fill: #ff0000
+            stroke: #ffffff
+            stroke-width: 2
+        }
+        
+        @cell sq_2 {
+            position: (300, 100, 0)
+            extent: (150, 150, 0)
+            fill: #00ff00
+            stroke: #ffffff
+            stroke-width: 2
+        }
+        
+        @cell sq_3 {
+            position: (500, 100, 0)
+            extent: (150, 150, 0)
+            fill: #0000ff
+            stroke: #ffffff
+            stroke-width: 2
+        }
+        
+        @cell sq_4 {
+            position: (100, 300, 0)
+            extent: (150, 150, 0)
+            fill: #ffff00
+            stroke: #ffffff
+            stroke-width: 2
+        }
+        
+        @cell sq_5 {
+            position: (300, 300, 0)
+            extent: (150, 150, 0)
+            fill: #ff00ff
+            stroke: #ffffff
+            stroke-width: 2
+        }
+        
+        @cell sq_6 {
+            position: (500, 300, 0)
+            extent: (150, 150, 0)
+            fill: #00ffff
+            stroke: #ffffff
+            stroke-width: 2
+        }
+    }
+}

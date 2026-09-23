@@ -2,6 +2,10 @@
 name = "rugid"
 version = "0.1.0"
 edition = "2024"
+description = "RUGID vector physics engine and GUI framework with RDF scene language"
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/elci-group/RUGID"
 
 [dependencies]
 bytemuck = { version = "1.24.0", features = ["derive"] }
@@ -34,3 +38,108 @@ harness = false
 [[bench]]
 name = "performance"
 harness = false
+
+[[bin]]
+name = "rgpum_test"
+path = "src/bin/rgpum_test.rs"
+required-features = ["rgpum"]
+
+[[bin]]
+name = "cad_demo"
+path = "src/bin/cad_demo.rs"
+required-features = ["wgpu"]
+
+[[bin]]
+name = "calculator_demo"
+path = "src/bin/calculator_demo.rs"
+required-features = ["wgpu"]
+
+[[bin]]
+name = "complex_cad_viewer"
+path = "src/bin/complex_cad_viewer.rs"
+required-features = ["wgpu"]
+
+[[bin]]
+name = "cornell_box_physics"
+path = "src/bin/cornell_box_physics.rs"
+required-features = ["wgpu"]
+
+[[bin]]
+name = "cube_rotation_demo"
+path = "src/bin/cube_rotation_demo.rs"
+required-features = ["wgpu"]
+
+[[bin]]
+name = "equilateral_shapes_gui"
+path = "src/bin/equilateral_shapes_gui.rs"
+required-features = ["wgpu"]
+
+[[bin]]
+name = "f1_car_demo"
+path = "src/bin/f1_car_demo.rs"
+required-features = ["wgpu"]
+
+[[bin]]
+name = "ironbeam"
+path = "src/bin/ironbeam.rs"
+required-features = ["wgpu"]
+
+[[bin]]
+name = "jabulani_demo"
+path = "src/bin/jabulani_demo.rs"
+required-features = ["wgpu"]
+
+[[bin]]
+name = "media_player"
+path = "src/bin/media_player.rs"
+required-features = ["wgpu"]
+
+[[bin]]
+name = "mercedes_w14_demo"
+path = "src/bin/mercedes_w14_demo.rs"
+required-features = ["wgpu"]
+
+[[bin]]
+name = "motion_3d_demo"
+path = "src/bin/motion_3d_demo.rs"
+required-features = ["wgpu"]
+
+[[bin]]
+name = "nested_boxes"
+path = "src/bin/nested_boxes.rs"
+required-features = ["wgpu"]
+
+[[bin]]
+name = "octahedron_rotation_demo"
+path = "src/bin/octahedron_rotation_demo.rs"
+required-features = ["wgpu"]
+
+[[bin]]
+name = "pyramid_rotation_demo"
+path = "src/bin/pyramid_rotation_demo.rs"
+required-features = ["wgpu"]
+
+[[bin]]
+name = "tetrahedron_rotation_demo"
+path = "src/bin/tetrahedron_rotation_demo.rs"
+required-features = ["wgpu"]
+
+[[bin]]
+name = "texttest"
+path = "src/bin/texttest.rs"
+required-features = ["wgpu"]
+
+[[bin]]
+name = "windowed_cube"
+path = "src/bin/windowed_cube.rs"
+required-features = ["wgpu"]
+
+[[bin]]
+name = "windowed_shapes_demo"
+path = "src/bin/windowed_shapes_demo.rs"
+required-features = ["wgpu"]
+
+[[bin]]
+name = "yas_marina_demo"
+path = "src/bin/yas_marina_demo.rs"
+required-features = ["wgpu"]

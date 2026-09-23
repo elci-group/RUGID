@@ -1,7 +1,6 @@
 /// Telemetry System - "The Observatory"
 ///
 /// Structured logging and performance monitoring for RUGID.
-
 use std::collections::{HashMap, VecDeque};
 use std::time::Instant;
 
@@ -80,7 +79,7 @@ pub struct TelemetryEvent {
     pub timestamp_us: u64,
     /// Log level
     pub level: LogLevel,
-    /// Category 
+    /// Category
     pub category: Category,
     /// Event name
     pub event: String,
@@ -160,7 +159,12 @@ impl TelemetryCollector {
         #[cfg(debug_assertions)]
         {
             if level <= LogLevel::WARN {
-                eprintln!("[{:?}] [{}] {}", level, category, self.events.back().unwrap().event);
+                eprintln!(
+                    "[{:?}] [{}] {}",
+                    level,
+                    category,
+                    self.events.back().unwrap().event
+                );
             }
         }
     }
@@ -192,7 +196,10 @@ impl TelemetryCollector {
 
     /// Get events by category
     pub fn get_events_by_category(&self, category: Category) -> Vec<&TelemetryEvent> {
-        self.events.iter().filter(|e| e.category == category).collect()
+        self.events
+            .iter()
+            .filter(|e| e.category == category)
+            .collect()
     }
 
     /// Get events by level

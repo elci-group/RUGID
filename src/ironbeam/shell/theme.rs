@@ -1,5 +1,5 @@
 //! IronBeam Theme Engine
-//! 
+//!
 //! Defines the visual language and design system for the IronBeam GUI.
 
 #[derive(Clone, Debug)]

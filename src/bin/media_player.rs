@@ -8,33 +8,33 @@
 //! - Nested boxes use min/max bounded constraints (20% < x < 80%)
 //! - Text rendering with parent-relative font sizing
 
-use rugid::runtime::Runtime;
 use rugid::cell::{Cell, CellId};
 use rugid::geometry::VectorRegion;
 use rugid::ontology::{
-    OntologicalNode, OntologyResolver, RelativeSize, ResolvedTransform, 
-    StackDirection, RelativeBounds, RelativeText, ResolvedCell,
+    OntologicalNode, OntologyResolver, RelativeSize, RelativeText, ResolvedTransform,
+    StackDirection,
 };
-use rugid::widgets::{ButtonProjector, SliderProjector};
 use rugid::platforms::wgpu_platform::WgpuPlatform;
-use winit::event::{Event, WindowEvent};
-use winit::event_loop::{EventLoop, ControlFlow};
-use winit::window::WindowBuilder;
-use std::sync::Arc;
+use rugid::runtime::Runtime;
+use rugid::widgets::{ButtonProjector, SliderProjector};
 use std::collections::HashMap;
+use std::sync::Arc;
+use winit::event::{Event, WindowEvent};
+use winit::event_loop::{ControlFlow, EventLoop};
+use winit::window::WindowBuilder;
 
 /// Builds the ontological tree for the media player UI.
-/// 
+///
 /// Notice: NO absolute pixel values. ALL dimensions are relative to parent.
 /// The hierarchy in code exactly mirrors the visual containment hierarchy.
-/// 
+///
 /// NEW: Demonstrates NESTED BOXES using bounded constraints:
 /// - Video overlay controls (inset within video)
 /// - Sidebar items with padding (bounded within sidebar)
 /// - Modal-style elements using bounded positioning
 fn build_ui_ontology() -> (OntologicalNode, HashMap<&'static str, CellId>) {
     let mut cells = HashMap::new();
-    
+
     // Helper to create a named cell
     macro_rules! cell {
         ($name:expr) => {{
@@ -43,7 +43,7 @@ fn build_ui_ontology() -> (OntologicalNode, HashMap<&'static str, CellId>) {
             id
         }};
     }
-    
+
     // ═══════════════════════════════════════════════════════════════════════════
     // ROOT (Screen Space)
     // └── Header (8% of screen height)
@@ -57,12 +57,12 @@ fn build_ui_ontology() -> (OntologicalNode, HashMap<&'static str, CellId>) {
     // │   ├── Sidebar (18% of main width)
     // │   │   ├── SidebarHeader (10% of sidebar height)
     // │   │   ├── Playlists (bounded with padding)
-    // │   │   │   ├── Playlist1 
-    // │   │   │   ├── Playlist2 
-    // │   │   │   └── Playlist3 
+    // │   │   │   ├── Playlist1
+    // │   │   │   ├── Playlist2
+    // │   │   │   └── Playlist3
     // │   │   └── Actions (bounded with padding)
-    // │   │       ├── LibraryBtn 
-    // │   │       └── DownloadsBtn 
+    // │   │       ├── LibraryBtn
+    // │   │       └── DownloadsBtn
     // │   └── VideoSection (fills remaining width)
     // │       ├── VideoPlayer (fills, minus info area)
     // │       │   └── VideoOverlay (INSET: centered controls within video)
@@ -86,25 +86,32 @@ fn build_ui_ontology() -> (OntologicalNode, HashMap<&'static str, CellId>) {
     // MINIMAL TEST CASE: Single Label
     // ═══════════════════════════════════════════════════════════════════════════
 
-    let root = OntologicalNode::window("root", StackDirection::Primary)
+    let root = OntologicalNode::window("root", StackDirection::Primary).child(
+        OntologicalNode::pane(
+            "test_pane",
+            "root",
+            StackDirection::Primary,
+            RelativeSize::Percent(0.5),
+            RelativeSize::Percent(0.5),
+        )
         .child(
-            OntologicalNode::pane("test_pane", "root", StackDirection::Primary, RelativeSize::Percent(0.5), RelativeSize::Percent(0.5))
-                .child(
-                    OntologicalNode::widget(cell!("test_widget"), "test_pane", RelativeSize::Percent(1.0), RelativeSize::Percent(1.0))
-                        .child(
-                            OntologicalNode::text_inset(
-                                cell!("test_label"),
-                                "test_widget", // Explicit parent is the widget
-                                RelativeText::new("TESTING 123").bold().color("#FFFFFF"),
-                                0.0, // 0 margin = 100% height of widget
-                            )
-                        )
-                )
-        );
+            OntologicalNode::widget(
+                cell!("test_widget"),
+                "test_pane",
+                RelativeSize::Percent(1.0),
+                RelativeSize::Percent(1.0),
+            )
+            .child(OntologicalNode::text_inset(
+                cell!("test_label"),
+                "test_widget", // Explicit parent is the widget
+                RelativeText::new("TESTING 123").bold().color("#FFFFFF"),
+                0.0, // 0 margin = 100% height of widget
+            )),
+        ),
+    );
 
     (root, cells)
 }
-
 
 fn main() {
     println!("🎬 RUGID Media Player - Ontological Indentation Demo");
@@ -112,22 +119,24 @@ fn main() {
     println!("Demonstrating: compositional scaling via hierarchy\n");
 
     let event_loop = EventLoop::new().unwrap();
-    let window = Arc::new(WindowBuilder::new()
-        .with_title("RUGID Media Player (Ontological)")
-        .with_inner_size(winit::dpi::LogicalSize::new(1280.0, 720.0))
-        .build(&event_loop)
-        .unwrap());
+    let window = Arc::new(
+        WindowBuilder::new()
+            .with_title("RUGID Media Player (Ontological)")
+            .with_inner_size(winit::dpi::LogicalSize::new(1280.0, 720.0))
+            .build(&event_loop)
+            .unwrap(),
+    );
 
     // Initialize WGPU Platform
     let platform = pollster::block_on(WgpuPlatform::new(window.clone()));
-    
-    use std::sync::Mutex;
+
     use rugid::platform::{Platform, PlatformEvent};
-    
+    use std::sync::Mutex;
+
     struct SharedWgpuPlatform {
         inner: Arc<Mutex<WgpuPlatform>>,
     }
-    
+
     impl Platform for SharedWgpuPlatform {
         fn poll_events(&mut self) -> Vec<PlatformEvent> {
             self.inner.lock().unwrap().poll_events()
@@ -138,7 +147,9 @@ fn main() {
     }
 
     let wgpu_platform = Arc::new(Mutex::new(platform));
-    let runtime_platform = Box::new(SharedWgpuPlatform { inner: wgpu_platform.clone() });
+    let runtime_platform = Box::new(SharedWgpuPlatform {
+        inner: wgpu_platform.clone(),
+    });
 
     let mut runtime = Runtime::new(100, runtime_platform);
 
@@ -146,11 +157,17 @@ fn main() {
     // BUILD THE ONTOLOGICAL TREE
     // ═══════════════════════════════════════════════════════════════════════════
     let (ontology_root, cell_names) = build_ui_ontology();
-    
+
     // Initial layout update
     let size = window.inner_size();
-    update_layout(&mut runtime, &ontology_root, &cell_names, size.width as f32, size.height as f32);
-    
+    update_layout(
+        &mut runtime,
+        &ontology_root,
+        &cell_names,
+        size.width as f32,
+        size.height as f32,
+    );
+
     println!("\n✓ UI initialized with ontological indentation");
     println!("  - All sizes relative to parent");
     println!("  - No absolute pixel values in layout definition");
@@ -158,36 +175,44 @@ fn main() {
     println!("Starting event loop...\n");
 
     // Event Loop
-    event_loop.run(move |event, target| {
-        target.set_control_flow(ControlFlow::Poll);
+    event_loop
+        .run(move |event, target| {
+            target.set_control_flow(ControlFlow::Poll);
 
-        if let Ok(mut platform) = wgpu_platform.lock() {
-            platform.handle_event(&event);
-        }
-
-        match event {
-            Event::WindowEvent {
-                event: WindowEvent::CloseRequested,
-                ..
-            } => {
-                target.exit();
+            if let Ok(mut platform) = wgpu_platform.lock() {
+                platform.handle_event(&event);
             }
-            Event::WindowEvent {
-                event: WindowEvent::Resized(new_size),
-                ..
-            } => {
-                // On resize, re-resolve the ontological tree
-                // This ensures true relativistic scaling where text respects its parent's actual dimensions
-                if new_size.width > 0 && new_size.height > 0 {
-                    update_layout(&mut runtime, &ontology_root, &cell_names, new_size.width as f32, new_size.height as f32);
+
+            match event {
+                Event::WindowEvent {
+                    event: WindowEvent::CloseRequested,
+                    ..
+                } => {
+                    target.exit();
                 }
+                Event::WindowEvent {
+                    event: WindowEvent::Resized(new_size),
+                    ..
+                } => {
+                    // On resize, re-resolve the ontological tree
+                    // This ensures true relativistic scaling where text respects its parent's actual dimensions
+                    if new_size.width > 0 && new_size.height > 0 {
+                        update_layout(
+                            &mut runtime,
+                            &ontology_root,
+                            &cell_names,
+                            new_size.width as f32,
+                            new_size.height as f32,
+                        );
+                    }
+                }
+                Event::AboutToWait => {
+                    runtime.tick();
+                }
+                _ => {}
             }
-            Event::AboutToWait => {
-                runtime.tick();
-            }
-            _ => {}
-        }
-    }).unwrap();
+        })
+        .unwrap();
 }
 
 fn update_layout(
@@ -195,46 +220,51 @@ fn update_layout(
     ontology_root: &OntologicalNode,
     cell_names: &HashMap<&str, CellId>,
     width: f32,
-    height: f32
+    height: f32,
 ) {
     let screen = ResolvedTransform::screen(width, height);
-    
+
     // Resolve the entire ontological tree to absolute positions WITH TEXT
     let resolved = OntologyResolver::resolve_with_text(ontology_root, screen);
-    
+
     for (name, cell_id) in cell_names {
         if let Some(resolved_cell) = resolved.get(cell_id) {
             let transform = &resolved_cell.transform;
-            
+
             // Create cell with geometry from ontological resolution
             let mut cell = Cell::new(VectorRegion::new(
-                transform.y / height, // origin_p (normalized)
-                transform.x / width,  // origin_s (normalized)
+                transform.y / height,      // origin_p (normalized)
+                transform.x / width,       // origin_s (normalized)
                 transform.height / height, // extent_p
                 transform.width / width,   // extent_s
             ));
             cell.id = *cell_id;
-            
+
             // Use slider projector for timeline and volume
             if *name == "timeline" || *name == "volume_slider" {
                 let value = if *name == "timeline" { 0.35 } else { 0.75 };
-                runtime.register_cell(cell, Box::new(SliderProjector {
-                    target: *cell_id,
-                    geometry: VectorRegion::new(
-                        transform.y / 100.0,
-                        transform.x / 100.0,
-                        transform.height / 100.0,
-                        transform.width / 100.0,
-                    ),
-                    value,
-                }), None, None);
+                runtime.register_cell(
+                    cell,
+                    Box::new(SliderProjector {
+                        target: *cell_id,
+                        geometry: VectorRegion::new(
+                            transform.y / 100.0,
+                            transform.x / 100.0,
+                            transform.height / 100.0,
+                            transform.width / 100.0,
+                        ),
+                        value,
+                    }),
+                    None,
+                    None,
+                );
             } else if let Some(text) = &resolved_cell.text {
                 // Register with text - using RESOLVED PIXEL font size
                 // The ontology resolver has already calculated this based on the parent's height
                 // We re-resolve on resize, so this pixel value will be updated dynamically
-                
+
                 runtime.register_text_cell(
-                    cell, 
+                    cell,
                     Box::new(ButtonProjector {
                         target: *cell_id,
                         geometry: VectorRegion::new(
@@ -252,19 +282,24 @@ fn update_layout(
                     &text.color,
                     &text.text_anchor,
                     None,
-                    None
+                    None,
                 );
             } else {
-                runtime.register_cell(cell, Box::new(ButtonProjector {
-                    target: *cell_id,
-                    geometry: VectorRegion::new(
-                        transform.y / 100.0,
-                        transform.x / 100.0,
-                        transform.height / 100.0,
-                        transform.width / 100.0,
-                    ),
-                    label: name.to_string(),
-                }), None, None);
+                runtime.register_cell(
+                    cell,
+                    Box::new(ButtonProjector {
+                        target: *cell_id,
+                        geometry: VectorRegion::new(
+                            transform.y / 100.0,
+                            transform.x / 100.0,
+                            transform.height / 100.0,
+                            transform.width / 100.0,
+                        ),
+                        label: name.to_string(),
+                    }),
+                    None,
+                    None,
+                );
             }
         }
     }

@@ -1,12 +1,12 @@
 //! IronBeam Phenomena Compositor
-//! 
+//!
 //! Aggregates and manages all environmental simulations.
 
-use crate::ironbeam::phenomena::wind::WindSystem;
-use crate::ironbeam::phenomena::solar_wind::SolarWindSystem;
-use crate::ironbeam::phenomena::rain::RainSystem;
-use crate::ironbeam::phenomena::earthquake::EarthquakeSystem;
 use crate::cad::BoundingBox;
+use crate::ironbeam::phenomena::earthquake::EarthquakeSystem;
+use crate::ironbeam::phenomena::rain::RainSystem;
+use crate::ironbeam::phenomena::solar_wind::SolarWindSystem;
+use crate::ironbeam::phenomena::wind::WindSystem;
 
 pub struct PhenomenaCompositor {
     pub wind: WindSystem,
@@ -14,6 +14,12 @@ pub struct PhenomenaCompositor {
     pub rain: Option<RainSystem>,
     pub earthquake: Option<EarthquakeSystem>,
     pub time: f64,
+}
+
+impl Default for PhenomenaCompositor {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl PhenomenaCompositor {
@@ -37,11 +43,11 @@ impl PhenomenaCompositor {
 
     pub fn tick(&mut self, dt: f32) {
         self.time += dt as f64;
-        
+
         if let Some(rain) = &mut self.rain {
             rain.tick(dt, &self.wind, self.time);
         }
-        
+
         if let Some(eq) = &mut self.earthquake {
             eq.elapsed += dt;
             if eq.elapsed > eq.duration {

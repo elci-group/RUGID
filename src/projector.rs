@@ -1,7 +1,7 @@
-use crate::signal::Signal;
-use crate::diffuser::{Projection, Layer, BehaviourFlag};
-use crate::temporal::{DeltaProgram, DeltaType};
 use crate::cell::CellId;
+use crate::diffuser::{BehaviourFlag, Layer, Projection};
+use crate::signal::Signal;
+use crate::temporal::{DeltaProgram, DeltaType};
 
 /// A projector is a pure function that maps signals to cell-space deltas (programs).
 ///
@@ -35,7 +35,7 @@ mod tests {
     struct MockProjector;
 
     impl Projector<i32> for MockProjector {
-        fn project(&self, signal: &Signal<i32>) -> Projection {
+        fn project(&self, _signal: &Signal<i32>) -> Projection {
             // Mock program
             let program = DeltaProgram::new(
                 CellId::next(),

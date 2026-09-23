@@ -1,11 +1,11 @@
 //! IronBeam Selection System
-//! 
+//!
 //! Handles raycasting and hit testing for selecting objects in the viewport.
 
+use crate::cell::CellId;
 use crate::geometry3d::Point3D;
 use crate::ironbeam::viewer::camera::Camera3D;
 use crate::ironbeam::viewer::staging::StagingManager;
-use crate::cell::CellId;
 
 pub struct Ray3D {
     pub origin: Point3D,
@@ -32,10 +32,7 @@ impl SelectionSystem {
     }
 
     /// Find the closest model intersected by the ray
-    pub fn pick(
-        _staging: &StagingManager,
-        _ray: &Ray3D,
-    ) -> Option<CellId> {
+    pub fn pick(_staging: &StagingManager, _ray: &Ray3D) -> Option<CellId> {
         // Iterate over all models and check intersection with their bounds/mesh
         // Return the closest one
         None

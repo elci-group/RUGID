@@ -1,5 +1,5 @@
 //! IronBeam Camera System
-//! 
+//!
 //! Handles 3D camera state, projection, and control logic.
 
 use crate::geometry3d::{Point3D, Rotation3D};
@@ -16,25 +16,25 @@ pub enum ProjectionMode {
 pub struct Camera3D {
     /// Position in world space
     pub position: Point3D,
-    
+
     /// Euler angles (pitch, yaw, roll) in degrees
     pub rotation: Rotation3D,
-    
+
     /// Field of view in degrees
     pub fov: f32,
-    
+
     /// Near clipping plane
     pub near: f32,
-    
+
     /// Far clipping plane
     pub far: f32,
-    
+
     /// Projection mode
     pub projection: ProjectionMode,
-    
+
     /// Orbit target (for orbit camera mode)
     pub orbit_target: Option<Point3D>,
-    
+
     /// Zoom level (affects orbit distance or orthographic scale)
     pub zoom: f32,
 }
@@ -66,17 +66,17 @@ pub struct CameraController {
     pub orbit_sensitivity: f32,
     pub pan_sensitivity: f32,
     pub zoom_sensitivity: f32,
-    
+
     /// Constraints
-    pub pitch_limits: (f32, f32),  // Min/max pitch in degrees
-    pub zoom_limits: (f32, f32),   // Min/max zoom distance
-    
+    pub pitch_limits: (f32, f32), // Min/max pitch in degrees
+    pub zoom_limits: (f32, f32), // Min/max zoom distance
+
     /// Smoothing
     pub interpolation_speed: f32,
     pub target_rotation: Rotation3D,
     pub target_position: Point3D,
     pub target_zoom: f32,
-    
+
     /// Mode
     pub mode: CameraMode,
 }
@@ -93,9 +93,9 @@ impl Default for CameraController {
             target_rotation: Rotation3D::zero(),
             target_position: Point3D::new(0.0, 0.0, -10.0),
             target_zoom: 10.0,
-            mode: CameraMode::Orbit { 
-                center: Point3D::zero(), 
-                distance: 10.0 
+            mode: CameraMode::Orbit {
+                center: Point3D::zero(),
+                distance: 10.0,
             },
         }
     }
@@ -103,37 +103,36 @@ impl Default for CameraController {
 
 impl CameraController {
     pub fn process_input(&mut self, event: &InputEvent) {
-        match event {
-            InputEvent::PointerMove(dx, dy) => {
-                // Simplified input handling for now
-                // In a real implementation, we'd check for mouse buttons
-                // For now, assume always orbiting if moving
-                self.target_rotation.yaw += dx * self.orbit_sensitivity;
-                self.target_rotation.pitch += dy * self.orbit_sensitivity;
-                self.target_rotation.pitch = self.target_rotation.pitch
-                    .clamp(self.pitch_limits.0, self.pitch_limits.1);
-            }
-            // TODO: Handle scroll for zoom
-            _ => {}
+        if let InputEvent::PointerMove(dx, dy) = event {
+            // Simplified input handling for now
+            // In a real implementation, we'd check for mouse buttons
+            // For now, assume always orbiting if moving
+            self.target_rotation.yaw += dx * self.orbit_sensitivity;
+            self.target_rotation.pitch += dy * self.orbit_sensitivity;
+            self.target_rotation.pitch = self
+                .target_rotation
+                .pitch
+                .clamp(self.pitch_limits.0, self.pitch_limits.1);
         }
+        // TODO: Handle scroll for zoom
     }
-    
+
     pub fn update(&mut self, camera: &mut Camera3D, dt: f32) {
         // Smooth interpolation toward target values
         let t = 1.0 - (-self.interpolation_speed * dt).exp();
-        
+
         // Simple lerp for now
         camera.rotation.pitch += (self.target_rotation.pitch - camera.rotation.pitch) * t;
         camera.rotation.yaw += (self.target_rotation.yaw - camera.rotation.yaw) * t;
         camera.rotation.roll += (self.target_rotation.roll - camera.rotation.roll) * t;
-        
+
         // Update position based on orbit
         if let CameraMode::Orbit { center, distance } = self.mode {
             // Calculate position from rotation and distance
             // This is a simplified orbit calculation
             // Real implementation would use quaternions or matrix math
             // But RUGID uses Euler angles
-            
+
             // For now, just update the camera struct
             camera.zoom = distance;
             camera.orbit_target = Some(center);

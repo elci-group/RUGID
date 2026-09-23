@@ -1,6 +1,6 @@
+use crate::cell::CellId;
 use rayon::prelude::*;
 use std::collections::HashMap;
-use crate::cell::CellId;
 use std::f32::consts::PI;
 
 #[derive(Clone, Copy, Debug)]
@@ -18,9 +18,12 @@ pub struct FluidParticle {
 impl FluidParticle {
     pub fn new(x: f32, y: f32) -> Self {
         Self {
-            x, y,
-            vx: 0.0, vy: 0.0,
-            fx: 0.0, fy: 0.0,
+            x,
+            y,
+            vx: 0.0,
+            vy: 0.0,
+            fx: 0.0,
+            fy: 0.0,
             density: 0.0,
             pressure: 0.0,
         }
@@ -31,10 +34,10 @@ impl FluidParticle {
 pub struct FluidConfig {
     pub gravity_x: f32,
     pub gravity_y: f32,
-    pub smoothing_radius: f32, // h
-    pub target_density: f32,   // rho0
+    pub smoothing_radius: f32,    // h
+    pub target_density: f32,      // rho0
     pub pressure_multiplier: f32, // k
-    pub viscosity: f32,        // mu
+    pub viscosity: f32,           // mu
     pub damping: f32,
 }
 
@@ -85,22 +88,26 @@ impl FluidDomain {
         // We can't easily mutate in parallel while reading all, so we compute densities into a separate vec first?
         // Or use interior mutability? Or just collect.
         // For simplicity in this iteration, we'll do a multi-pass approach.
-        
+
         // Pass 1: Density
-        let densities: Vec<f32> = self.particles.par_iter().map(|p_i| {
-            let mut density = 0.0;
-            for p_j in &self.particles {
-                let dx = p_i.x - p_j.x;
-                let dy = p_i.y - p_j.y;
-                let r2 = dx*dx + dy*dy;
-                
-                if r2 < h2 {
-                    let diff = h2 - r2;
-                    density += diff * diff * diff;
+        let densities: Vec<f32> = self
+            .particles
+            .par_iter()
+            .map(|p_i| {
+                let mut density = 0.0;
+                for p_j in &self.particles {
+                    let dx = p_i.x - p_j.x;
+                    let dy = p_i.y - p_j.y;
+                    let r2 = dx * dx + dy * dy;
+
+                    if r2 < h2 {
+                        let diff = h2 - r2;
+                        density += diff * diff * diff;
+                    }
                 }
-            }
-            density * poly6_coeff
-        }).collect();
+                density * poly6_coeff
+            })
+            .collect();
 
         // Update particles with density and pressure
         for (i, p) in self.particles.iter_mut().enumerate() {
@@ -111,42 +118,50 @@ impl FluidDomain {
         // Pass 2: Forces (Pressure + Viscosity)
         // We need read access to all particles, write access to forces.
         // We can compute forces in parallel and collect them.
-        let forces: Vec<(f32, f32)> = self.particles.par_iter().enumerate().map(|(i, p_i)| {
-            let mut fx = 0.0;
-            let mut fy = 0.0;
+        let forces: Vec<(f32, f32)> = self
+            .particles
+            .par_iter()
+            .enumerate()
+            .map(|(i, p_i)| {
+                let mut fx = 0.0;
+                let mut fy = 0.0;
 
-            for (j, p_j) in self.particles.iter().enumerate() {
-                if i == j { continue; }
+                for (j, p_j) in self.particles.iter().enumerate() {
+                    if i == j {
+                        continue;
+                    }
 
-                let dx = p_i.x - p_j.x;
-                let dy = p_i.y - p_j.y;
-                let r = (dx*dx + dy*dy).sqrt();
+                    let dx = p_i.x - p_j.x;
+                    let dy = p_i.y - p_j.y;
+                    let r = (dx * dx + dy * dy).sqrt();
 
-                if r > 0.0 && r < h {
-                    // Pressure Force
-                    // Fp = -normalize(r) * mass * (pi + pj) / (2 * rho_j) * W_spiky
-                    // Simplified SPH:
-                    let force_pressure = (p_i.pressure + p_j.pressure) / (2.0 * p_j.density);
-                    let diff = h - r;
-                    let spiky = spiky_grad_coeff * diff * diff;
-                    
-                    fx += -dx / r * force_pressure * spiky;
-                    fy += -dy / r * force_pressure * spiky;
+                    if r > 0.0 && r < h {
+                        // Pressure Force
+                        // Fp = -normalize(r) * mass * (pi + pj) / (2 * rho_j) * W_spiky
+                        // Simplified SPH:
+                        let force_pressure = (p_i.pressure + p_j.pressure) / (2.0 * p_j.density);
+                        let diff = h - r;
+                        let spiky = spiky_grad_coeff * diff * diff;
 
-                    // Viscosity Force
-                    // Fv = mu * (vj - vi) / rho_j * W_visc
-                    let visc_term = self.config.viscosity / p_j.density * viscosity_coeff * (h - r);
-                    fx += (p_j.vx - p_i.vx) * visc_term;
-                    fy += (p_j.vy - p_i.vy) * visc_term;
+                        fx += -dx / r * force_pressure * spiky;
+                        fy += -dy / r * force_pressure * spiky;
+
+                        // Viscosity Force
+                        // Fv = mu * (vj - vi) / rho_j * W_visc
+                        let visc_term =
+                            self.config.viscosity / p_j.density * viscosity_coeff * (h - r);
+                        fx += (p_j.vx - p_i.vx) * visc_term;
+                        fy += (p_j.vy - p_i.vy) * visc_term;
+                    }
                 }
-            }
-            (fx, fy)
-        }).collect();
+                (fx, fy)
+            })
+            .collect();
 
         // Pass 3: Integration & Boundary Conditions
         for (i, p) in self.particles.iter_mut().enumerate() {
             let (force_x, force_y) = forces[i];
-            
+
             // Apply forces
             p.fx = force_x + self.config.gravity_x * p.density;
             p.fy = force_y + self.config.gravity_y * p.density;
@@ -160,16 +175,34 @@ impl FluidDomain {
 
             // Boundary Conditions (Simple Box)
             let damping = self.config.damping;
-            if p.x < 0.0 { p.x = 0.0; p.vx *= -damping; }
-            if p.x > self.width { p.x = self.width; p.vx *= -damping; }
-            if p.y < 0.0 { p.y = 0.0; p.vy *= -damping; }
-            if p.y > self.height { p.y = self.height; p.vy *= -damping; }
+            if p.x < 0.0 {
+                p.x = 0.0;
+                p.vx *= -damping;
+            }
+            if p.x > self.width {
+                p.x = self.width;
+                p.vx *= -damping;
+            }
+            if p.y < 0.0 {
+                p.y = 0.0;
+                p.vy *= -damping;
+            }
+            if p.y > self.height {
+                p.y = self.height;
+                p.vy *= -damping;
+            }
         }
     }
 }
 
 pub struct FluidSystem {
     pub domains: HashMap<CellId, FluidDomain>,
+}
+
+impl Default for FluidSystem {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl FluidSystem {
@@ -196,7 +229,7 @@ impl FluidSystem {
             domain.tick(0.016); // Fixed dt
         });
     }
-    
+
     pub fn get_particles(&self, id: CellId) -> Option<&Vec<FluidParticle>> {
         self.domains.get(&id).map(|d| &d.particles)
     }

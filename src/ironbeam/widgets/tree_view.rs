@@ -17,7 +17,7 @@ impl TreeView {
     pub fn new(id: CellId, root: TreeItem) -> Self {
         Self { id, root }
     }
-    
+
     pub fn render(&self) -> String {
         // Simplified rendering
         format!(

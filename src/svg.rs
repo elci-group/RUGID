@@ -65,33 +65,36 @@ impl SvgTransform {
             ..Default::default()
         }
     }
-    
+
     pub fn with_scale(mut self, sx: f32, sy: f32) -> Self {
         self.scale = (sx, sy);
         self
     }
-    
+
     pub fn with_rotation(mut self, degrees: f32) -> Self {
         self.rotate = degrees;
         self
     }
-    
+
     /// Generate SVG transform attribute value
     pub fn to_svg_string(&self) -> String {
         let mut parts = Vec::new();
-        
+
         if self.translate != (0.0, 0.0) {
-            parts.push(format!("translate({:.2}, {:.2})", self.translate.0, self.translate.1));
+            parts.push(format!(
+                "translate({:.2}, {:.2})",
+                self.translate.0, self.translate.1
+            ));
         }
-        
+
         if self.scale != (1.0, 1.0) {
             parts.push(format!("scale({:.4}, {:.4})", self.scale.0, self.scale.1));
         }
-        
+
         if self.rotate != 0.0 {
             parts.push(format!("rotate({:.2})", self.rotate));
         }
-        
+
         parts.join(" ")
     }
 }
@@ -129,14 +132,20 @@ pub enum SvgNode {
 }
 
 impl SvgNode {
+    /// Set an attribute, replacing any existing attribute of the same kind
+    /// (e.g. a second `Opacity` replaces the first rather than duplicating
+    /// it in the emitted SVG).
     pub fn add_attribute(&mut self, attr: SvgAttribute) {
-        match self {
-            SvgNode::Group { attributes, .. } => attributes.push(attr),
-            SvgNode::Rect { attributes, .. } => attributes.push(attr),
-            SvgNode::Path { attributes, .. } => attributes.push(attr),
-            SvgNode::Text { attributes, .. } => attributes.push(attr),
-            SvgNode::RawSvg(_) => {}, // Raw SVG doesn't have attributes
-        }
+        let attributes = match self {
+            SvgNode::Group { attributes, .. } => attributes,
+            SvgNode::Rect { attributes, .. } => attributes,
+            SvgNode::Path { attributes, .. } => attributes,
+            SvgNode::Text { attributes, .. } => attributes,
+            SvgNode::RawSvg(_) => return, // Raw SVG doesn't have attributes
+        };
+        let incoming = std::mem::discriminant(&attr);
+        attributes.retain(|existing| std::mem::discriminant(existing) != incoming);
+        attributes.push(attr);
     }
 
     pub fn set_fill(&mut self, color: String) {
@@ -155,7 +164,11 @@ impl SvgNode {
 impl fmt::Display for SvgNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            SvgNode::Group { attributes, children, transform } => {
+            SvgNode::Group {
+                attributes,
+                children,
+                transform,
+            } => {
                 write!(f, "<g")?;
                 // Emit ontological transform if present
                 if let Some(xform) = transform {
@@ -173,8 +186,18 @@ impl fmt::Display for SvgNode {
                 }
                 write!(f, "</g>")
             }
-            SvgNode::Rect { attributes, x, y, width, height } => {
-                write!(f, "<rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\"", x, y, width, height)?;
+            SvgNode::Rect {
+                attributes,
+                x,
+                y,
+                width,
+                height,
+            } => {
+                write!(
+                    f,
+                    "<rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\"",
+                    x, y, width, height
+                )?;
                 for attr in attributes {
                     write!(f, " {}", attr)?;
                 }
@@ -187,7 +210,12 @@ impl fmt::Display for SvgNode {
                 }
                 write!(f, " />")
             }
-            SvgNode::Text { attributes, x, y, content } => {
+            SvgNode::Text {
+                attributes,
+                x,
+                y,
+                content,
+            } => {
                 write!(f, "<text x=\"{}\" y=\"{}\"", x, y)?;
                 for attr in attributes {
                     write!(f, " {}", attr)?;
@@ -206,33 +234,34 @@ impl fmt::Display for SvgNode {
 /// Returns (r, g, b) as floats in 0.0-1.0 range, or None if parsing fails
 pub fn parse_rgb_color(color: &str) -> Option<(f32, f32, f32)> {
     let color = color.trim();
-    
+
     // Parse rgb(r,g,b) format
     if color.starts_with("rgb(") && color.ends_with(")") {
-        let inner = &color[4..color.len()-1];
+        let inner = &color[4..color.len() - 1];
         let parts: Vec<&str> = inner.split(',').collect();
-        if parts.len() == 3 {
-            if let (Ok(r), Ok(g), Ok(b)) = (
+        if parts.len() == 3
+            && let (Ok(r), Ok(g), Ok(b)) = (
                 parts[0].trim().parse::<u8>(),
                 parts[1].trim().parse::<u8>(),
                 parts[2].trim().parse::<u8>(),
-            ) {
-                return Some((r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0));
-            }
-        }
-    }
-    
-    // Parse #RRGGBB format
-    if color.starts_with("#") && color.len() == 7 {
-        if let (Ok(r), Ok(g), Ok(b)) = (
-            u8::from_str_radix(&color[1..3], 16),
-            u8::from_str_radix(&color[3..5], 16),
-            u8::from_str_radix(&color[5..7], 16),
-        ) {
+            )
+        {
             return Some((r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0));
         }
     }
-    
+
+    // Parse #RRGGBB format
+    if color.starts_with("#")
+        && color.len() == 7
+        && let (Ok(r), Ok(g), Ok(b)) = (
+            u8::from_str_radix(&color[1..3], 16),
+            u8::from_str_radix(&color[3..5], 16),
+            u8::from_str_radix(&color[5..7], 16),
+        )
+    {
+        return Some((r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0));
+    }
+
     None
 }
 
@@ -249,22 +278,22 @@ pub fn path_to_svg_d(points: &[(f32, f32)], closed: bool) -> String {
     if points.is_empty() {
         return String::new();
     }
-    
+
     let mut d = String::new();
-    
+
     // Start with moveto
     d.push_str(&format!("M {:.2} {:.2}", points[0].0, points[0].1));
-    
+
     // Add lineto commands for remaining points
     for point in &points[1..] {
         d.push_str(&format!(" L {:.2} {:.2}", point.0, point.1));
     }
-    
+
     // Close path if needed
     if closed {
         d.push_str(" Z");
     }
-    
+
     d
 }
 

@@ -1,5 +1,5 @@
 //! IronBeam Autocomplete Engine
-//! 
+//!
 //! Provides code completion suggestions.
 
 #[derive(Clone, Debug)]
@@ -24,6 +24,12 @@ pub struct CompletionItem {
 
 pub struct AutocompleteEngine {
     // In a real implementation, this would connect to LSP or Gemini
+}
+
+impl Default for AutocompleteEngine {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl AutocompleteEngine {

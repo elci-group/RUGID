@@ -50,7 +50,7 @@ pub enum TokenType {
 
 /// Lexer state machine
 pub struct Lexer<'a> {
-    input: &'a str,
+    _input: &'a str,
     chars: std::iter::Peekable<std::str::Chars<'a>>,
     line: usize,
     column: usize,
@@ -61,7 +61,7 @@ pub struct Lexer<'a> {
 impl<'a> Lexer<'a> {
     pub fn new(input: &'a str) -> Self {
         Self {
-            input,
+            _input: input,
             chars: input.chars().peekable(),
             line: 1,
             column: 0,
@@ -69,11 +69,11 @@ impl<'a> Lexer<'a> {
             bracket_depth: 0,
         }
     }
-    
+
     fn peek(&mut self) -> Option<char> {
         self.chars.peek().copied()
     }
-    
+
     fn advance(&mut self) -> Option<char> {
         let ch = self.chars.next();
         if let Some(c) = ch {
@@ -90,7 +90,7 @@ impl<'a> Lexer<'a> {
         }
         ch
     }
-    
+
     fn make_token(&self, token_type: TokenType, value: impl Into<String>) -> Token {
         Token {
             token_type,
@@ -99,7 +99,7 @@ impl<'a> Lexer<'a> {
             column: self.column,
         }
     }
-    
+
     fn skip_whitespace_not_indent(&mut self) {
         while let Some(c) = self.peek() {
             if c == ' ' && !self.at_line_start {
@@ -109,7 +109,7 @@ impl<'a> Lexer<'a> {
             }
         }
     }
-    
+
     fn read_indent(&mut self) -> Token {
         let mut count = 0;
         while let Some(c) = self.peek() {
@@ -132,7 +132,7 @@ impl<'a> Lexer<'a> {
         self.at_line_start = false;
         self.make_token(TokenType::Indent, count.to_string())
     }
-    
+
     fn read_element_or_attribute(&mut self) -> Token {
         let mut value = String::new();
         while let Some(c) = self.peek() {
@@ -143,7 +143,7 @@ impl<'a> Lexer<'a> {
                 break;
             }
         }
-        
+
         // Check if this is followed by ::: (element) or :: (attribute)
         if self.peek() == Some(':') {
             // Peek ahead to see if it's ::: or ::
@@ -157,11 +157,11 @@ impl<'a> Lexer<'a> {
             self.make_token(TokenType::AttributeName, value)
         }
     }
-    
+
     fn read_value_content(&mut self) -> Token {
         let mut value = String::new();
         let mut depth = 0;
-        
+
         while let Some(c) = self.peek() {
             if c == '[' {
                 depth += 1;
@@ -184,10 +184,10 @@ impl<'a> Lexer<'a> {
                 self.advance();
             }
         }
-        
+
         self.make_token(TokenType::Value, value)
     }
-    
+
     fn read_comment(&mut self) -> Token {
         let mut value = String::new();
         while let Some(c) = self.peek() {
@@ -199,7 +199,7 @@ impl<'a> Lexer<'a> {
         }
         self.make_token(TokenType::Comment, value)
     }
-    
+
     fn next_token(&mut self) -> Option<Token> {
         // Handle indentation at start of line
         if self.at_line_start {
@@ -215,20 +215,19 @@ impl<'a> Lexer<'a> {
             }
             self.at_line_start = false;
         }
-        
+
         // If we are inside brackets, read value content
-        if self.bracket_depth > 0 {
-             if let Some(c) = self.peek() {
-                 if c != ']' {
-                     return Some(self.read_value_content());
-                 }
-             }
+        if self.bracket_depth > 0
+            && let Some(c) = self.peek()
+            && c != ']'
+        {
+            return Some(self.read_value_content());
         }
-        
+
         self.skip_whitespace_not_indent();
-        
+
         let c = self.peek()?;
-        
+
         match c {
             '#' => Some(self.read_comment()),
             '\n' => {
@@ -275,9 +274,7 @@ impl<'a> Lexer<'a> {
                 self.advance();
                 Some(self.make_token(TokenType::Tilde, "~"))
             }
-            _ if c.is_alphabetic() || c == '_' => {
-                Some(self.read_element_or_attribute())
-            }
+            _ if c.is_alphabetic() || c == '_' => Some(self.read_element_or_attribute()),
             _ => {
                 // Skip unknown characters
                 self.advance();
@@ -289,7 +286,7 @@ impl<'a> Lexer<'a> {
 
 impl<'a> Iterator for Lexer<'a> {
     type Item = Token;
-    
+
     fn next(&mut self) -> Option<Self::Item> {
         self.next_token()
     }
@@ -298,35 +295,47 @@ impl<'a> Iterator for Lexer<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_basic_lexing() {
         let input = "window:::title[Test]";
         let lexer = Lexer::new(input);
         let tokens: Vec<Token> = lexer.collect();
-        
-        assert!(tokens.iter().any(|t| t.token_type == TokenType::Element && t.value == "window"));
-        assert!(tokens.iter().any(|t| t.token_type == TokenType::ElementSeparator));
-        assert!(tokens.iter().any(|t| t.token_type == TokenType::AttributeName && t.value == "title"));
+
+        assert!(
+            tokens
+                .iter()
+                .any(|t| t.token_type == TokenType::Element && t.value == "window")
+        );
+        assert!(
+            tokens
+                .iter()
+                .any(|t| t.token_type == TokenType::ElementSeparator)
+        );
+        assert!(
+            tokens
+                .iter()
+                .any(|t| t.token_type == TokenType::AttributeName && t.value == "title")
+        );
     }
-    
+
     #[test]
     fn test_indentation() {
         let input = "\tpane:::id[main]";
         let lexer = Lexer::new(input);
         let tokens: Vec<Token> = lexer.collect();
-        
+
         let indent = tokens.iter().find(|t| t.token_type == TokenType::Indent);
         assert!(indent.is_some());
         assert_eq!(indent.unwrap().value, "1");
     }
-    
+
     #[test]
     fn test_value_parsing() {
         let input = "widget:::origin[0.5,0.5]";
         let lexer = Lexer::new(input);
         let tokens: Vec<Token> = lexer.collect();
-        
+
         let value = tokens.iter().find(|t| t.token_type == TokenType::Value);
         assert!(value.is_some());
         assert_eq!(value.unwrap().value, "0.5,0.5");

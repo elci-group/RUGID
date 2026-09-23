@@ -21,11 +21,11 @@ pub enum RelativeSize {
     /// Fixed percentage of parent (0.0 - 1.0)
     /// Example: 0.08 means "8% of parent"
     Percent(f32),
-    
+
     /// Flex weight - fills remaining space after fixed allocations
     /// Multiple flex children share space proportionally by weight
     Flex(f32),
-    
+
     /// Maintain aspect ratio relative to the resolved other axis
     /// Value is the ratio: width / height
     Aspect(f32),
@@ -42,7 +42,7 @@ impl RelativeSize {
     pub fn pct(value: f32) -> Self {
         RelativeSize::Percent(value)
     }
-    
+
     /// Convenience for flex with weight 1.0
     pub fn fill() -> Self {
         RelativeSize::Flex(1.0)
@@ -94,7 +94,7 @@ impl Default for RelativeText {
     fn default() -> Self {
         Self {
             content: String::new(),
-            font_size: 0.6,       // 60% of parent height
+            font_size: 0.6, // 60% of parent height
             align: TextAlign::Center,
             baseline: TextBaseline::Middle,
             color: "#FFFFFF".to_string(),
@@ -112,44 +112,44 @@ impl RelativeText {
             ..Default::default()
         }
     }
-    
+
     /// Set font size as percentage of parent height
     pub fn size(mut self, pct: f32) -> Self {
         self.font_size = pct;
         self
     }
-    
+
     /// Set alignment
     pub fn align(mut self, h: TextAlign, v: TextBaseline) -> Self {
         self.align = h;
         self.baseline = v;
         self
     }
-    
+
     /// Set color
     pub fn color(mut self, color: impl Into<String>) -> Self {
         self.color = color.into();
         self
     }
-    
+
     /// Set font family
     pub fn font(mut self, family: impl Into<String>) -> Self {
         self.font_family = Some(family.into());
         self
     }
-    
+
     /// Set font weight
     pub fn weight(mut self, weight: impl Into<String>) -> Self {
         self.font_weight = weight.into();
         self
     }
-    
+
     /// Convenience: left-aligned text
     pub fn left(mut self) -> Self {
         self.align = TextAlign::Start;
         self
     }
-    
+
     /// Convenience: right-aligned text
     pub fn right(mut self) -> Self {
         self.align = TextAlign::End;
@@ -167,18 +167,18 @@ impl RelativeText {
         self.align = TextAlign::Center;
         self
     }
-    
+
     /// Convenience: bold text
     pub fn bold(mut self) -> Self {
         self.font_weight = "bold".to_string();
         self
     }
-    
+
     /// Resolve font size to absolute pixels given parent height
     pub fn resolve_font_size(&self, parent_height: f32) -> f32 {
         parent_height * self.font_size
     }
-    
+
     /// Get SVG text-anchor value
     pub fn svg_text_anchor(&self) -> &'static str {
         match self.align {
@@ -187,7 +187,7 @@ impl RelativeText {
             TextAlign::End => "end",
         }
     }
-    
+
     /// Get SVG dominant-baseline value
     pub fn svg_baseline(&self) -> &'static str {
         match self.baseline {
@@ -215,7 +215,7 @@ pub struct RelativeBounds {
 
 impl RelativeBounds {
     /// Create bounds from min/max percentages
-    /// 
+    ///
     /// Example: `RelativeBounds::new(0.2, 0.8)` means:
     /// - Start at 20% of parent
     /// - End at 80% of parent
@@ -226,39 +226,39 @@ impl RelativeBounds {
         debug_assert!(min >= 0.0 && max <= 1.0, "bounds must be in 0.0-1.0 range");
         Self { min, max }
     }
-    
+
     /// Create bounds that fill the parent (0.0 to 1.0)
     pub fn fill() -> Self {
         Self { min: 0.0, max: 1.0 }
     }
-    
+
     /// Create centered inset bounds with equal margins
-    /// 
+    ///
     /// Example: `RelativeBounds::inset(0.1)` creates 10% margin on each side
     /// (starts at 10%, ends at 90%)
     pub fn inset(margin: f32) -> Self {
         Self::new(margin, 1.0 - margin)
     }
-    
+
     /// Create asymmetric bounds
-    /// 
+    ///
     /// Example: `RelativeBounds::margins(0.1, 0.2)` creates:
     /// - 10% margin at start
     /// - 20% margin at end
     pub fn margins(start: f32, end: f32) -> Self {
         Self::new(start, 1.0 - end)
     }
-    
+
     /// The computed origin (start position) as fraction of parent
     pub fn origin(&self) -> f32 {
         self.min
     }
-    
+
     /// The computed extent (size) as fraction of parent
     pub fn extent(&self) -> f32 {
         self.max - self.min
     }
-    
+
     /// Resolve to absolute values given parent size
     pub fn resolve(&self, parent_size: f32) -> (f32, f32) {
         let origin = self.min * parent_size;
@@ -337,7 +337,7 @@ impl LocalSpace {
     pub fn fill() -> Self {
         Self::default()
     }
-    
+
     /// Convenience: Position this space at origin
     pub fn origin() -> Self {
         Self {
@@ -346,7 +346,7 @@ impl LocalSpace {
             ..Default::default()
         }
     }
-    
+
     /// Create a local space with fixed percentage extents
     pub fn sized(extent_p: f32, extent_s: f32) -> Self {
         Self {
@@ -355,13 +355,13 @@ impl LocalSpace {
             ..Default::default()
         }
     }
-    
+
     /// Set the shape for this local space
     pub fn with_shape(mut self, shape: crate::morphism::ShapeType) -> Self {
         self.shape = Some(shape);
         self
     }
-    
+
     /// Create a local space from RelativeBounds on both axes.
     ///
     /// Example: `LocalSpace::bounded(RelativeBounds::inset(0.2), RelativeBounds::inset(0.2))`
@@ -375,7 +375,7 @@ impl LocalSpace {
             ..Default::default()
         }
     }
-    
+
     /// Create a local space with equal inset margins on all sides.
     ///
     /// Example: `LocalSpace::inset(0.1)` creates a box with 10% margin on all sides.
@@ -383,7 +383,7 @@ impl LocalSpace {
     pub fn inset(margin: f32) -> Self {
         Self::bounded(RelativeBounds::inset(margin), RelativeBounds::inset(margin))
     }
-    
+
     /// Create a local space with specified margins.
     ///
     /// Example: `LocalSpace::margins(0.1, 0.2, 0.1, 0.2)` creates:
@@ -397,20 +397,20 @@ impl LocalSpace {
             RelativeBounds::margins(left, right),
         )
     }
-    
+
     /// Set the origin position
     pub fn at(mut self, origin_p: f32, origin_s: f32) -> Self {
         self.origin_p = origin_p;
         self.origin_s = origin_s;
         self
     }
-    
+
     /// Enable clipping
     pub fn clipped(mut self) -> Self {
         self.clips_children = true;
         self
     }
-    
+
     /// Set rotation
     pub fn rotated(mut self, degrees: f32) -> Self {
         self.rotation_deg = degrees;
@@ -424,10 +424,7 @@ pub enum NodeContent {
     /// A visual cell that gets rendered (no text)
     Cell(CellId),
     /// A cell with associated text content
-    TextCell {
-        cell_id: CellId,
-        text: RelativeText,
-    },
+    TextCell { cell_id: CellId, text: RelativeText },
     /// A 3D shape object
     Shape3D {
         cell_id: CellId,
@@ -519,7 +516,13 @@ impl OntologicalNode {
     }
 
     /// Create a Class 2 Pane (Container)
-    pub fn pane(name: &str, parent: &str, direction: StackDirection, extent_p: RelativeSize, extent_s: RelativeSize) -> Self {
+    pub fn pane(
+        name: &str,
+        parent: &str,
+        direction: StackDirection,
+        extent_p: RelativeSize,
+        extent_s: RelativeSize,
+    ) -> Self {
         Self {
             class: AssetClass::Pane,
             parent_id: Some(parent.to_string()),
@@ -536,7 +539,12 @@ impl OntologicalNode {
     }
 
     /// Create a Class 3 Widget (Leaf)
-    pub fn widget(cell_id: CellId, parent: &str, extent_p: RelativeSize, extent_s: RelativeSize) -> Self {
+    pub fn widget(
+        cell_id: CellId,
+        parent: &str,
+        extent_p: RelativeSize,
+        extent_s: RelativeSize,
+    ) -> Self {
         Self {
             class: AssetClass::Widget,
             parent_id: Some(parent.to_string()),
@@ -551,9 +559,15 @@ impl OntologicalNode {
             children: Vec::new(),
         }
     }
-    
+
     /// Create a Class 4 Content (Text)
-    pub fn text_content(cell_id: CellId, parent: &str, text: RelativeText, extent_p: RelativeSize, extent_s: RelativeSize) -> Self {
+    pub fn text_content(
+        cell_id: CellId,
+        parent: &str,
+        text: RelativeText,
+        extent_p: RelativeSize,
+        extent_s: RelativeSize,
+    ) -> Self {
         Self {
             class: AssetClass::Content,
             parent_id: Some(parent.to_string()),
@@ -581,9 +595,9 @@ impl OntologicalNode {
             children: Vec::new(),
         }
     }
-    
+
     /// Create a 3D shape widget with rotation
-    /// 
+    ///
     /// # Arguments
     /// * `cell_id` - The cell ID for this shape
     /// * `parent` - Parent node name
@@ -594,6 +608,7 @@ impl OntologicalNode {
     /// * `x_speed` - X-axis rotation speed (degrees/frame)
     /// * `y_speed` - Y-axis rotation speed
     /// * `z_speed` - Z-axis rotation speed
+    #[allow(clippy::too_many_arguments)]
     pub fn shape_3d(
         cell_id: CellId,
         parent: &str,
@@ -612,23 +627,27 @@ impl OntologicalNode {
         let y_max = bounds_y.1;
         let z_min = bounds_z.0;
         let z_max = bounds_z.1;
-        
+
         // Calculate size as the extent of the bounds
         let size_x = x_max - x_min;
         let size_y = y_max - y_min;
         let size_z = z_max - z_min;
-        
+
         // Use minimum dimension as the definitive size
         let size = size_x.min(size_y).min(size_z);
-        
+
         Self {
             class: AssetClass::Widget,
             parent_id: Some(parent.to_string()),
-            content: NodeContent::Shape3D { cell_id, shape_type, size },
+            content: NodeContent::Shape3D {
+                cell_id,
+                shape_type,
+                size,
+            },
             local_space: LocalSpace {
-                origin_p: y_min,  // Primary = Y
-                origin_s: x_min,  // Secondary = X
-                origin_z: z_min,  // Depth = Z
+                origin_p: y_min, // Primary = Y
+                origin_s: x_min, // Secondary = X
+                origin_z: z_min, // Depth = Z
                 extent_p: RelativeSize::Percent(size_y),
                 extent_s: RelativeSize::Percent(size_x),
                 extent_z: RelativeSize::Percent(size_z),
@@ -647,6 +666,7 @@ impl OntologicalNode {
     }
 
     /// Create a Pyramid 3D node
+    #[allow(clippy::too_many_arguments)]
     pub fn pyramid_3d(
         cell_id: CellId,
         parent: &str,
@@ -673,6 +693,7 @@ impl OntologicalNode {
     }
 
     /// Legacy support for cube_3d (wraps shape_3d)
+    #[allow(clippy::too_many_arguments)]
     pub fn cube_3d(
         cell_id: CellId,
         parent: &str,
@@ -685,14 +706,21 @@ impl OntologicalNode {
         opacity: f32,
     ) -> Self {
         Self::shape_3d(
-            cell_id, parent, 
-            crate::shapes3d::ShapeType::Cube, 
-            bounds_x, bounds_y, bounds_z, 
-            x_speed, y_speed, z_speed, opacity
+            cell_id,
+            parent,
+            crate::shapes3d::ShapeType::Cube,
+            bounds_x,
+            bounds_y,
+            bounds_z,
+            x_speed,
+            y_speed,
+            z_speed,
+            opacity,
         )
     }
 
     /// Create a Torus 3D node
+    #[allow(clippy::too_many_arguments)]
     pub fn torus_3d(
         cell_id: CellId,
         parent: &str,
@@ -720,6 +748,7 @@ impl OntologicalNode {
 
     /// Create a 3D shape with rotation speeds using extent-based dimensions.
     /// This is a simpler interface for RDF support.
+    #[allow(clippy::too_many_arguments)]
     pub fn shape3d_rotating(
         cell_id: CellId,
         parent: &str,
@@ -734,7 +763,11 @@ impl OntologicalNode {
         Self {
             class: AssetClass::Widget,
             parent_id: Some(parent.to_string()),
-            content: NodeContent::Shape3D { cell_id, shape_type, size },
+            content: NodeContent::Shape3D {
+                cell_id,
+                shape_type,
+                size,
+            },
             local_space: LocalSpace {
                 extent_p,
                 extent_s,
@@ -752,6 +785,7 @@ impl OntologicalNode {
     }
 
     /// Create an F1 Car 3D node
+    #[allow(clippy::too_many_arguments)]
     pub fn f1_car_3d(
         cell_id: CellId,
         parent: &str,
@@ -778,6 +812,7 @@ impl OntologicalNode {
     }
 
     /// Create a Jabulani ball (2010 World Cup) 3D node
+    #[allow(clippy::too_many_arguments)]
     pub fn jabulani_3d(
         cell_id: CellId,
         parent: &str,
@@ -804,6 +839,7 @@ impl OntologicalNode {
     }
 
     /// Create a Mercedes-AMG W14 (2023) 3D node
+    #[allow(clippy::too_many_arguments)]
     pub fn mercedes_w14_3d(
         cell_id: CellId,
         parent: &str,
@@ -828,7 +864,7 @@ impl OntologicalNode {
             opacity,
         )
     }
-    
+
     /// Helper for inset pane (Class 2)
     pub fn inset_pane(name: &str, parent: &str, margin: f32, direction: StackDirection) -> Self {
         Self {
@@ -854,12 +890,17 @@ impl OntologicalNode {
             children: Vec::new(),
         }
     }
-    
+
     /// Create a leaf node with explicit bounds on both axes.
     /// Uses ABSOLUTE positioning.
     ///
     /// Example: `OntologicalNode::bounded_leaf(cell_id, bounds_p, bounds_s)`
-    pub fn bounded_widget(cell_id: CellId, parent: &str, bounds_p: RelativeBounds, bounds_s: RelativeBounds) -> Self {
+    pub fn bounded_widget(
+        cell_id: CellId,
+        parent: &str,
+        bounds_p: RelativeBounds,
+        bounds_s: RelativeBounds,
+    ) -> Self {
         Self {
             class: AssetClass::Widget,
             parent_id: Some(parent.to_string()),
@@ -870,10 +911,16 @@ impl OntologicalNode {
             children: Vec::new(),
         }
     }
-    
+
     /// Create a container node with explicit bounds.
     /// Uses ABSOLUTE positioning.
-    pub fn bounded_pane(name: &str, parent: &str, bounds_p: RelativeBounds, bounds_s: RelativeBounds, direction: StackDirection) -> Self {
+    pub fn bounded_pane(
+        name: &str,
+        parent: &str,
+        bounds_p: RelativeBounds,
+        bounds_s: RelativeBounds,
+        direction: StackDirection,
+    ) -> Self {
         Self {
             class: AssetClass::Pane,
             parent_id: Some(parent.to_string()),
@@ -884,9 +931,15 @@ impl OntologicalNode {
             children: Vec::new(),
         }
     }
-    
+
     /// Create a bounded text leaf (absolute positioning with explicit bounds).
-    pub fn bounded_text(cell_id: CellId, parent: &str, text: RelativeText, bounds_p: RelativeBounds, bounds_s: RelativeBounds) -> Self {
+    pub fn bounded_text(
+        cell_id: CellId,
+        parent: &str,
+        text: RelativeText,
+        bounds_p: RelativeBounds,
+        bounds_s: RelativeBounds,
+    ) -> Self {
         Self {
             class: AssetClass::Content,
             parent_id: Some(parent.to_string()),
@@ -897,9 +950,14 @@ impl OntologicalNode {
             children: Vec::new(),
         }
     }
-    
+
     /// Create a circular widget (convenience for common shape)
-    pub fn circular_widget(cell_id: CellId, parent: &str, extent_p: RelativeSize, extent_s: RelativeSize) -> Self {
+    pub fn circular_widget(
+        cell_id: CellId,
+        parent: &str,
+        extent_p: RelativeSize,
+        extent_s: RelativeSize,
+    ) -> Self {
         Self {
             class: AssetClass::Widget,
             parent_id: Some(parent.to_string()),
@@ -915,9 +973,15 @@ impl OntologicalNode {
             children: Vec::new(),
         }
     }
-    
+
     /// Create a rounded rectangle widget
-    pub fn rounded_widget(cell_id: CellId, parent: &str, extent_p: RelativeSize, extent_s: RelativeSize, radius: f32) -> Self {
+    pub fn rounded_widget(
+        cell_id: CellId,
+        parent: &str,
+        extent_p: RelativeSize,
+        extent_s: RelativeSize,
+        radius: f32,
+    ) -> Self {
         Self {
             class: AssetClass::Widget,
             parent_id: Some(parent.to_string()),
@@ -933,9 +997,15 @@ impl OntologicalNode {
             children: Vec::new(),
         }
     }
-    
+
     /// Create a widget with custom shape
-    pub fn shaped_widget(cell_id: CellId, parent: &str, extent_p: RelativeSize, extent_s: RelativeSize, shape: crate::morphism::ShapeType) -> Self {
+    pub fn shaped_widget(
+        cell_id: CellId,
+        parent: &str,
+        extent_p: RelativeSize,
+        extent_s: RelativeSize,
+        shape: crate::morphism::ShapeType,
+    ) -> Self {
         Self {
             class: AssetClass::Widget,
             parent_id: Some(parent.to_string()),
@@ -956,7 +1026,7 @@ impl OntologicalNode {
         self.local_space.motion_3d = Some(crate::geometry3d::Point3D::new(dx, dy, dz));
         self
     }
-    
+
     pub fn with_orbit(mut self, radius: f32, speed: f32, axis: crate::motion3d::OrbitAxis) -> Self {
         self.local_space.orbit_3d = Some(crate::motion3d::Orbit3DState::new(radius, speed, axis));
         self
@@ -998,7 +1068,10 @@ impl OntologicalNode {
             if let NodeContent::TextCell { cell_id, .. } = self.content {
                 self.content = NodeContent::TextCell { cell_id, text };
             } else {
-                eprintln!("Warning: with_text called on non-cell node {:?}", self.content);
+                eprintln!(
+                    "Warning: with_text called on non-cell node {:?}",
+                    self.content
+                );
             }
         }
         self
@@ -1011,49 +1084,59 @@ impl OntologicalNode {
         // Class 2 -> Class 2 or Class 3
         // Class 3 -> Class 4
         // Class 4 -> None (Leaf)
-        
+
         let valid = match self.class {
             AssetClass::Window => child.class == AssetClass::Pane,
-            AssetClass::Pane => child.class == AssetClass::Pane || child.class == AssetClass::Widget,
-            AssetClass::Widget => child.class == AssetClass::Content || child.class == AssetClass::Widget, // Allow composite widgets
+            AssetClass::Pane => {
+                child.class == AssetClass::Pane || child.class == AssetClass::Widget
+            }
+            AssetClass::Widget => {
+                child.class == AssetClass::Content || child.class == AssetClass::Widget
+            } // Allow composite widgets
             AssetClass::Content => false, // Content cannot have children
         };
-        
+
         if !valid {
-            // We'll just print a warning for now to avoid crashing during development, 
+            // We'll just print a warning for now to avoid crashing during development,
             // but strictly this should be an error.
-            eprintln!("WARNING: Invalid hierarchy! {:?} cannot contain {:?}", self.class, child.class);
+            eprintln!(
+                "WARNING: Invalid hierarchy! {:?} cannot contain {:?}",
+                self.class, child.class
+            );
         }
-        
+
         // Validate explicit parent declaration
         if let Some(parent_id) = &child.parent_id {
-            let name = match &self.content {
+            let _name = match &self.content {
                 NodeContent::Container(name) => name.clone(),
                 NodeContent::Cell(id) => format!("cell_{}", id.0), // Approximate
                 NodeContent::TextCell { cell_id, .. } => format!("cell_{}", cell_id.0),
                 NodeContent::Shape3D { cell_id, .. } => format!("shape3d_{}", cell_id.0),
                 NodeContent::Structural => "structural".to_string(),
             };
-            
-            // Note: This check is tricky because CellIds are generated. 
+
+            // Note: This check is tricky because CellIds are generated.
             // For Containers (Panes), we can check names.
-            if let NodeContent::Container(my_name) = &self.content {
-                if my_name != parent_id {
-                     eprintln!("WARNING: Parent mismatch! Child declares parent '{}' but is being added to '{}'", parent_id, my_name);
-                }
+            if let NodeContent::Container(my_name) = &self.content
+                && my_name != parent_id
+            {
+                eprintln!(
+                    "WARNING: Parent mismatch! Child declares parent '{}' but is being added to '{}'",
+                    parent_id, my_name
+                );
             }
         }
 
         self.children.push(child);
         self
     }
-    
+
     /// Add multiple children
     pub fn children(mut self, nodes: Vec<OntologicalNode>) -> Self {
         self.children.extend(nodes);
         self
     }
-    
+
     /// Set clipping on this node
     pub fn clipped(mut self) -> Self {
         self.local_space.clips_children = true;
@@ -1101,17 +1184,17 @@ impl ResolvedTransform {
             clip: None,
         }
     }
-    
+
     /// Create a screen-space root transform
     pub fn screen(width: f32, height: f32) -> Self {
         Self::new(0.0, 0.0, width, height)
     }
-    
+
     /// Get primary axis size (assumes portrait: primary = height)
     pub fn primary(&self) -> f32 {
         self.height
     }
-    
+
     /// Get secondary axis size (assumes portrait: secondary = width)
     pub fn secondary(&self) -> f32 {
         self.width
@@ -1161,8 +1244,8 @@ pub struct ResolvedCell {
 impl ResolvedCell {
     /// Create a cell without text
     pub fn from_transform(transform: ResolvedTransform) -> Self {
-        Self { 
-            transform, 
+        Self {
+            transform,
             text: None,
             motion_3d: None,
             orbit_3d: None,
@@ -1170,13 +1253,13 @@ impl ResolvedCell {
             fill: None,
         }
     }
-    
+
     /// Create a cell with motion
     pub fn with_motion(
-        transform: ResolvedTransform, 
+        transform: ResolvedTransform,
         motion: Option<crate::geometry3d::Point3D>,
         orbit: Option<crate::motion3d::Orbit3DState>,
-        physics: Option<crate::physics::core::PhysicsState>
+        physics: Option<crate::physics::core::PhysicsState>,
     ) -> Self {
         Self {
             transform,
@@ -1187,25 +1270,29 @@ impl ResolvedCell {
             fill: None,
         }
     }
-    
+
     /// Create a cell with text, resolving font size from the node's geometric height
     /// This strictly enforces l < fs < u logic where fs is determined by the bounds
-    pub fn with_text(transform: ResolvedTransform, relative_text: &RelativeText, _parent_height: f32) -> Self {
-        let font_size_px = transform.height;
-        
+    pub fn with_text(
+        transform: ResolvedTransform,
+        relative_text: &RelativeText,
+        _parent_height: f32,
+    ) -> Self {
+        let font_size_px = relative_text.resolve_font_size(transform.height);
+
         // Calculate text position based on alignment
         let x = match relative_text.align {
             TextAlign::Start => transform.x,
             TextAlign::Center => transform.x + transform.width / 2.0,
             TextAlign::End => transform.x + transform.width,
         };
-        
+
         let y = match relative_text.baseline {
             TextBaseline::Top => transform.y,
             TextBaseline::Middle => transform.y + transform.height / 2.0,
             TextBaseline::Bottom => transform.y + transform.height,
         };
-        
+
         Self {
             transform,
             text: Some(ResolvedText {
@@ -1238,9 +1325,12 @@ impl OntologyResolver {
         screen: ResolvedTransform,
     ) -> HashMap<CellId, ResolvedTransform> {
         let cells = Self::resolve_with_text(root, screen);
-        cells.into_iter().map(|(id, cell)| (id, cell.transform)).collect()
+        cells
+            .into_iter()
+            .map(|(id, cell)| (id, cell.transform))
+            .collect()
     }
-    
+
     /// Resolve the entire tree, producing ResolvedCells with text info
     pub fn resolve_with_text(
         root: &OntologicalNode,
@@ -1250,7 +1340,7 @@ impl OntologyResolver {
         Self::resolve_node_with_text(root, &screen, &mut results);
         results
     }
-    
+
     fn resolve_node_with_text(
         node: &OntologicalNode,
         parent: &ResolvedTransform,
@@ -1258,7 +1348,7 @@ impl OntologyResolver {
     ) {
         // Compute this node's transform
         let this_transform = Self::compute_transform(node, parent);
-        
+
         // Record this node if it has a cell
         match &node.content {
             NodeContent::Cell(cell_id) => {
@@ -1267,7 +1357,10 @@ impl OntologyResolver {
                 results.insert(*cell_id, cell);
             }
             NodeContent::TextCell { cell_id, text } => {
-                results.insert(*cell_id, ResolvedCell::with_text(this_transform, text, parent.height));
+                results.insert(
+                    *cell_id,
+                    ResolvedCell::with_text(this_transform, text, parent.height),
+                );
             }
             NodeContent::Shape3D { cell_id, .. } => {
                 // Shape3D uses regular transform resolution
@@ -1275,48 +1368,60 @@ impl OntologyResolver {
             }
             _ => {}
         }
-        
+
         // If no children, we're done
         if node.children.is_empty() {
             return;
         }
-        
+
         // Separate children by position mode
-        let (stacked_children, absolute_children): (Vec<_>, Vec<_>) = 
-            node.children.iter().partition(|c| c.position_mode == PositionMode::Stacked);
-        
+        let (stacked_children, absolute_children): (Vec<_>, Vec<_>) = node
+            .children
+            .iter()
+            .partition(|c| c.position_mode == PositionMode::Stacked);
+
         // Resolve stacked children with proper layout
         if !stacked_children.is_empty() {
-            Self::resolve_stacked_children_with_text(&stacked_children, node.stack_direction, &this_transform, results);
+            Self::resolve_stacked_children_with_text(
+                &stacked_children,
+                node.stack_direction,
+                &this_transform,
+                results,
+            );
         }
-        
+
         // Resolve absolute children directly
         for child in absolute_children {
             Self::resolve_node_with_text(child, &this_transform, results);
         }
     }
-    
+
     fn compute_transform(node: &OntologicalNode, parent: &ResolvedTransform) -> ResolvedTransform {
         let space = &node.local_space;
-        
+
         // Resolve extents relative to parent
         let width = Self::resolve_size(&space.extent_s, parent.secondary(), parent.primary());
         let height = Self::resolve_size(&space.extent_p, parent.primary(), parent.secondary());
-        
+
         // Compute position in parent space
         let x = parent.x + space.origin_s * parent.secondary();
         let y = parent.y + space.origin_p * parent.primary();
-        
+
         // Accumulate rotation
         let rotation = parent.rotation + space.rotation_deg;
-        
+
         // Handle clipping
         let clip = if space.clips_children {
-            Some(ClipRect { x, y, width, height })
+            Some(ClipRect {
+                x,
+                y,
+                width,
+                height,
+            })
         } else {
             parent.clip
         };
-        
+
         ResolvedTransform {
             x,
             y,
@@ -1326,7 +1431,7 @@ impl OntologyResolver {
             clip,
         }
     }
-    
+
     fn resolve_size(size: &RelativeSize, parent_size: f32, other_axis: f32) -> f32 {
         match size {
             RelativeSize::Percent(pct) => parent_size * pct,
@@ -1334,7 +1439,7 @@ impl OntologyResolver {
             RelativeSize::Aspect(ratio) => other_axis * ratio,
         }
     }
-    
+
     fn resolve_stacked_children_with_text(
         children: &[&OntologicalNode],
         stack_direction: StackDirection,
@@ -1346,17 +1451,17 @@ impl OntologyResolver {
             StackDirection::Primary => parent.primary(),
             StackDirection::Secondary => parent.secondary(),
         };
-        
+
         // First pass: calculate fixed allocations and flex weights
         let mut fixed_total = 0.0;
         let mut flex_total = 0.0;
-        
+
         for child in children {
             let extent = match stack_direction {
                 StackDirection::Primary => &child.local_space.extent_p,
                 StackDirection::Secondary => &child.local_space.extent_s,
             };
-            
+
             match extent {
                 RelativeSize::Percent(pct) => fixed_total += axis_size * pct,
                 RelativeSize::Flex(weight) => flex_total += weight,
@@ -1377,18 +1482,18 @@ impl OntologyResolver {
                 }
             }
         }
-        
+
         let remaining = (axis_size - fixed_total).max(0.0);
-        
+
         // Second pass: position children
         let mut current_pos = 0.0;
-        
+
         for child in children {
             let extent = match stack_direction {
                 StackDirection::Primary => &child.local_space.extent_p,
                 StackDirection::Secondary => &child.local_space.extent_s,
             };
-            
+
             // Calculate child size along stack axis
             let child_size = match extent {
                 RelativeSize::Percent(pct) => axis_size * pct,
@@ -1412,30 +1517,36 @@ impl OntologyResolver {
                     resolved_other * ratio
                 }
             };
-            
+
             // Cross-axis size
             let cross_axis_size = match stack_direction {
                 StackDirection::Primary => parent.secondary(),
                 StackDirection::Secondary => parent.primary(),
             };
-            
+
             let cross_extent = match stack_direction {
                 StackDirection::Primary => &child.local_space.extent_s,
                 StackDirection::Secondary => &child.local_space.extent_p,
             };
-            
+
             let child_cross_size = Self::resolve_size(cross_extent, cross_axis_size, child_size);
-            
+
             // Build child transform - stacked children ignore origin values
             let (child_x, child_y, child_w, child_h) = match stack_direction {
-                StackDirection::Primary => {
-                    (parent.x, parent.y + current_pos, child_cross_size, child_size)
-                }
-                StackDirection::Secondary => {
-                    (parent.x + current_pos, parent.y, child_size, child_cross_size)
-                }
+                StackDirection::Primary => (
+                    parent.x,
+                    parent.y + current_pos,
+                    child_cross_size,
+                    child_size,
+                ),
+                StackDirection::Secondary => (
+                    parent.x + current_pos,
+                    parent.y,
+                    child_size,
+                    child_cross_size,
+                ),
             };
-            
+
             let child_transform = ResolvedTransform {
                 x: child_x,
                 y: child_y,
@@ -1453,45 +1564,61 @@ impl OntologyResolver {
                     parent.clip
                 },
             };
-            
+
             // Record cell with text info if applicable
             match &child.content {
                 NodeContent::Cell(cell_id) => {
-                    results.insert(*cell_id, ResolvedCell::with_motion(
-                        child_transform, 
-                        child.local_space.motion_3d.clone(),
-                        child.local_space.orbit_3d.clone(),
-                        child.local_space.physics.clone()
-                    ));
+                    results.insert(
+                        *cell_id,
+                        ResolvedCell::with_motion(
+                            child_transform,
+                            child.local_space.motion_3d,
+                            child.local_space.orbit_3d.clone(),
+                            child.local_space.physics.clone(),
+                        ),
+                    );
                 }
                 NodeContent::TextCell { cell_id, text } => {
-                    results.insert(*cell_id, ResolvedCell::with_text(child_transform, text, parent.height));
+                    results.insert(
+                        *cell_id,
+                        ResolvedCell::with_text(child_transform, text, parent.height),
+                    );
                 }
                 NodeContent::Shape3D { cell_id, .. } => {
-                    results.insert(*cell_id, ResolvedCell::with_motion(
-                        child_transform,
-                        child.local_space.motion_3d.clone(),
-                        child.local_space.orbit_3d.clone(),
-                        child.local_space.physics.clone()
-                    ));
+                    results.insert(
+                        *cell_id,
+                        ResolvedCell::with_motion(
+                            child_transform,
+                            child.local_space.motion_3d,
+                            child.local_space.orbit_3d.clone(),
+                            child.local_space.physics.clone(),
+                        ),
+                    );
                 }
                 _ => {}
             }
-            
+
             // Recursively resolve grandchildren
             if !child.children.is_empty() {
-                let (stacked_gc, absolute_gc): (Vec<_>, Vec<_>) = 
-                    child.children.iter().partition(|c| c.position_mode == PositionMode::Stacked);
-                
+                let (stacked_gc, absolute_gc): (Vec<_>, Vec<_>) = child
+                    .children
+                    .iter()
+                    .partition(|c| c.position_mode == PositionMode::Stacked);
+
                 if !stacked_gc.is_empty() {
-                    Self::resolve_stacked_children_with_text(&stacked_gc, child.stack_direction, &child_transform, results);
+                    Self::resolve_stacked_children_with_text(
+                        &stacked_gc,
+                        child.stack_direction,
+                        &child_transform,
+                        results,
+                    );
                 }
-                
+
                 for gc in absolute_gc {
                     Self::resolve_node_with_text(gc, &child_transform, results);
                 }
             }
-            
+
             current_pos += child_size;
         }
     }
@@ -1500,90 +1627,133 @@ impl OntologyResolver {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_simple_hierarchy() {
         // Screen -> Panel (50% height) -> Button (25% of panel)
         let button_id = CellId::next();
-        
-        let root = OntologicalNode::window("root", StackDirection::Primary)
-            .child(
-                OntologicalNode::pane("panel", "root", StackDirection::Primary, RelativeSize::Percent(0.5), RelativeSize::Percent(1.0))
-                    .child(
-                        OntologicalNode::widget(button_id, "panel", RelativeSize::Percent(0.25), RelativeSize::Percent(1.0))
-                    )
-            );
-        
+
+        let root = OntologicalNode::window("root", StackDirection::Primary).child(
+            OntologicalNode::pane(
+                "panel",
+                "root",
+                StackDirection::Primary,
+                RelativeSize::Percent(0.5),
+                RelativeSize::Percent(1.0),
+            )
+            .child(OntologicalNode::widget(
+                button_id,
+                "panel",
+                RelativeSize::Percent(0.25),
+                RelativeSize::Percent(1.0),
+            )),
+        );
+
         let screen = ResolvedTransform::screen(1000.0, 800.0);
         let resolved = OntologyResolver::resolve(&root, screen);
-        
+
         let button = resolved.get(&button_id).unwrap();
-        
+
         // Panel is 50% of screen height (400px)
         // Button is 25% of panel height (100px)
-        assert!((button.height - 100.0).abs() < 0.1, "Button height: {}", button.height);
-        assert!((button.width - 1000.0).abs() < 0.1, "Button width: {}", button.width);
+        assert!(
+            (button.height - 100.0).abs() < 0.1,
+            "Button height: {}",
+            button.height
+        );
+        assert!(
+            (button.width - 1000.0).abs() < 0.1,
+            "Button width: {}",
+            button.width
+        );
     }
-    
+
     #[test]
     fn test_flex_allocation() {
         let cell1 = CellId::next();
         let cell2 = CellId::next();
         let cell3 = CellId::next();
-        
+
         let root = OntologicalNode::window("root", StackDirection::Primary)
-            .child(OntologicalNode::widget(cell1, "root", RelativeSize::Percent(0.1), RelativeSize::Percent(1.0))) // 10%
-            .child(OntologicalNode::widget(cell2, "root", RelativeSize::Flex(1.0), RelativeSize::Percent(1.0)))    // Flex
-            .child(OntologicalNode::widget(cell3, "root", RelativeSize::Percent(0.1), RelativeSize::Percent(1.0))); // 10%
-        
+            .child(OntologicalNode::widget(
+                cell1,
+                "root",
+                RelativeSize::Percent(0.1),
+                RelativeSize::Percent(1.0),
+            )) // 10%
+            .child(OntologicalNode::widget(
+                cell2,
+                "root",
+                RelativeSize::Flex(1.0),
+                RelativeSize::Percent(1.0),
+            )) // Flex
+            .child(OntologicalNode::widget(
+                cell3,
+                "root",
+                RelativeSize::Percent(0.1),
+                RelativeSize::Percent(1.0),
+            )); // 10%
+
         let screen = ResolvedTransform::screen(1000.0, 1000.0);
         let resolved = OntologyResolver::resolve(&root, screen);
-        
+
         // cell1: 10% = 100px
         // cell3: 10% = 100px
         // cell2: remaining 80% = 800px
-        
+
         assert!((resolved.get(&cell1).unwrap().height - 100.0).abs() < 0.1);
         assert!((resolved.get(&cell2).unwrap().height - 800.0).abs() < 0.1);
         assert!((resolved.get(&cell3).unwrap().height - 100.0).abs() < 0.1);
     }
-    
+
     #[test]
     fn test_compositional_scaling() {
         // Demonstrate: child size is 10% of parent, parent is 50% of screen
         // Result: child is 5% of screen - but we never say that explicitly
-        
+
         let inner_id = CellId::next();
-        
-        let root = OntologicalNode::window("root", StackDirection::Primary)
-            .child(
-                OntologicalNode::pane("outer", "root", StackDirection::Primary, RelativeSize::Percent(0.5), RelativeSize::Percent(1.0))
-                    .child(
-                        OntologicalNode::widget(inner_id, "outer", RelativeSize::Percent(0.1), RelativeSize::Percent(1.0))
-                    )
-            );
-        
+
+        let root = OntologicalNode::window("root", StackDirection::Primary).child(
+            OntologicalNode::pane(
+                "outer",
+                "root",
+                StackDirection::Primary,
+                RelativeSize::Percent(0.5),
+                RelativeSize::Percent(1.0),
+            )
+            .child(OntologicalNode::widget(
+                inner_id,
+                "outer",
+                RelativeSize::Percent(0.1),
+                RelativeSize::Percent(1.0),
+            )),
+        );
+
         let screen = ResolvedTransform::screen(1000.0, 1000.0);
         let resolved = OntologyResolver::resolve(&root, screen);
-        
+
         let inner = resolved.get(&inner_id).unwrap();
-        
+
         // 0.5 * 0.1 = 0.05 = 5% of 1000 = 50px
-        assert!((inner.height - 50.0).abs() < 0.1, "Compositional: {}", inner.height);
+        assert!(
+            (inner.height - 50.0).abs() < 0.1,
+            "Compositional: {}",
+            inner.height
+        );
     }
-    
+
     #[test]
     fn test_relative_bounds() {
         // Test RelativeBounds calculations
         let bounds = RelativeBounds::new(0.2, 0.8);
         assert!((bounds.origin() - 0.2).abs() < 0.001);
         assert!((bounds.extent() - 0.6).abs() < 0.001);
-        
+
         let (origin, extent) = bounds.resolve(1000.0);
         assert!((origin - 200.0).abs() < 0.1);
         assert!((extent - 600.0).abs() < 0.1);
     }
-    
+
     #[test]
     fn test_relative_bounds_inset() {
         // Test inset convenience method
@@ -1592,167 +1762,208 @@ mod tests {
         assert!((bounds.max - 0.9).abs() < 0.001);
         assert!((bounds.extent() - 0.8).abs() < 0.001);
     }
-    
+
     #[test]
     fn test_inset_leaf() {
         // Test inset_leaf: 20% margin on all sides
         // Parent is 1000x1000, so inner box should be:
         // - Position: (200, 200)
         // - Size: 600x600
-        
+
         let inner_id = CellId::next();
-        
+
         let root = OntologicalNode::window("root", StackDirection::Primary)
             .child(OntologicalNode::inset_widget(inner_id, "root", 0.2));
-        
+
         let screen = ResolvedTransform::screen(1000.0, 1000.0);
         let resolved = OntologyResolver::resolve(&root, screen);
-        
+
         let inner = resolved.get(&inner_id).unwrap();
-        
+
         // Position should be at 20% = 200px
         assert!((inner.x - 200.0).abs() < 0.1, "Inner x: {}", inner.x);
         assert!((inner.y - 200.0).abs() < 0.1, "Inner y: {}", inner.y);
-        
+
         // Size should be 60% = 600px
-        assert!((inner.width - 600.0).abs() < 0.1, "Inner width: {}", inner.width);
-        assert!((inner.height - 600.0).abs() < 0.1, "Inner height: {}", inner.height);
+        assert!(
+            (inner.width - 600.0).abs() < 0.1,
+            "Inner width: {}",
+            inner.width
+        );
+        assert!(
+            (inner.height - 600.0).abs() < 0.1,
+            "Inner height: {}",
+            inner.height
+        );
     }
-    
+
     #[test]
     fn test_nested_inset() {
         // Nested insets: outer box has 10% margin, inner box has 20% margin within outer
         // Screen: 1000x1000
         // Outer: starts at 100, size 800 (10% margin)
         // Inner: starts at 100 + 160 = 260, size 480 (20% of 800 margin = 160)
-        
+
         let inner_id = CellId::next();
-        
-        let root = OntologicalNode::window("root", StackDirection::Primary)
-            .child(
-                OntologicalNode::inset_pane("outer", "root", 0.1, StackDirection::Primary)
-                    .child(OntologicalNode::inset_widget(inner_id, "outer", 0.2))
-            );
-        
+
+        let root = OntologicalNode::window("root", StackDirection::Primary).child(
+            OntologicalNode::inset_pane("outer", "root", 0.1, StackDirection::Primary)
+                .child(OntologicalNode::inset_widget(inner_id, "outer", 0.2)),
+        );
+
         let screen = ResolvedTransform::screen(1000.0, 1000.0);
         let resolved = OntologyResolver::resolve(&root, screen);
-        
+
         let inner = resolved.get(&inner_id).unwrap();
-        
+
         // Outer: 10% margin = position 100, size 800
         // Inner within outer: 20% margin = position 160 (of 800) + 100 = 260
         // Inner size: 60% of 800 = 480
-        
+
         assert!((inner.x - 260.0).abs() < 0.1, "Nested inner x: {}", inner.x);
         assert!((inner.y - 260.0).abs() < 0.1, "Nested inner y: {}", inner.y);
-        assert!((inner.width - 480.0).abs() < 0.1, "Nested inner width: {}", inner.width);
-        assert!((inner.height - 480.0).abs() < 0.1, "Nested inner height: {}", inner.height);
+        assert!(
+            (inner.width - 480.0).abs() < 0.1,
+            "Nested inner width: {}",
+            inner.width
+        );
+        assert!(
+            (inner.height - 480.0).abs() < 0.1,
+            "Nested inner height: {}",
+            inner.height
+        );
     }
-    
+
     #[test]
     fn test_bounded_asymmetric() {
         // Test asymmetric bounds: 10% < p < 70%, 20% < s < 90%
         // This creates a box that's not centered
-        
+
         let cell_id = CellId::next();
-        
+
         let bounds_p = RelativeBounds::new(0.1, 0.7); // 10% to 70% = 60% height
         let bounds_s = RelativeBounds::new(0.2, 0.9); // 20% to 90% = 70% width
-        
-        let root = OntologicalNode::window("root", StackDirection::Primary)
-            .child(OntologicalNode::bounded_widget(cell_id, "root", bounds_p, bounds_s));
-        
+
+        let root = OntologicalNode::window("root", StackDirection::Primary).child(
+            OntologicalNode::bounded_widget(cell_id, "root", bounds_p, bounds_s),
+        );
+
         let screen = ResolvedTransform::screen(1000.0, 1000.0);
         let resolved = OntologyResolver::resolve(&root, screen);
-        
+
         let cell = resolved.get(&cell_id).unwrap();
-        
+
         // x: 20% of 1000 = 200
         // y: 10% of 1000 = 100
         // width: 70% of 1000 = 700
         // height: 60% of 1000 = 600
-        
+
         assert!((cell.x - 200.0).abs() < 0.1, "Asymmetric x: {}", cell.x);
         assert!((cell.y - 100.0).abs() < 0.1, "Asymmetric y: {}", cell.y);
-        assert!((cell.width - 700.0).abs() < 0.1, "Asymmetric width: {}", cell.width);
-        assert!((cell.height - 600.0).abs() < 0.1, "Asymmetric height: {}", cell.height);
+        assert!(
+            (cell.width - 700.0).abs() < 0.1,
+            "Asymmetric width: {}",
+            cell.width
+        );
+        assert!(
+            (cell.height - 600.0).abs() < 0.1,
+            "Asymmetric height: {}",
+            cell.height
+        );
     }
-    
+
     #[test]
     fn test_text_relative_sizing() {
         // Test that text font size is resolved relative to parent height
         // Parent height: 100px, font_size: 0.5 (50%) = 50px font
-        
+
         let text_id = CellId::next();
-        
-        let root = OntologicalNode::window("root", StackDirection::Primary)
-            .child(
-                OntologicalNode::pane("main", "root", StackDirection::Primary, RelativeSize::Percent(1.0), RelativeSize::Percent(1.0))
-                    .child(
-                        OntologicalNode::text_content(
-                            text_id,
-                            "main",
-                            RelativeText::new("Hello World")
-                                .size(0.5)  // 50% of parent height
-                                .bold()
-                                .color("#FF0000"),
-                            RelativeSize::Percent(0.1),  // 10% of screen height = 100px
-                            RelativeSize::Percent(1.0),
-                        )
-                    )
-            );
-        
+
+        let root = OntologicalNode::window("root", StackDirection::Primary).child(
+            OntologicalNode::pane(
+                "main",
+                "root",
+                StackDirection::Primary,
+                RelativeSize::Percent(1.0),
+                RelativeSize::Percent(1.0),
+            )
+            .child(OntologicalNode::text_content(
+                text_id,
+                "main",
+                RelativeText::new("Hello World")
+                    .size(0.5) // 50% of parent height
+                    .bold()
+                    .color("#FF0000"),
+                RelativeSize::Percent(0.1), // 10% of screen height = 100px
+                RelativeSize::Percent(1.0),
+            )),
+        );
+
         let screen = ResolvedTransform::screen(1000.0, 1000.0);
         let resolved = OntologyResolver::resolve_with_text(&root, screen);
-        
+
         let cell = resolved.get(&text_id).unwrap();
-        
+
         // Cell should be 100px tall (10% of 1000)
-        assert!((cell.transform.height - 100.0).abs() < 0.1, "Height: {}", cell.transform.height);
-        
+        assert!(
+            (cell.transform.height - 100.0).abs() < 0.1,
+            "Height: {}",
+            cell.transform.height
+        );
+
         // Text should be present
         let text = cell.text.as_ref().expect("Should have text");
-        
+
         // Font size should be 50% of 100px = 50px
-        assert!((text.font_size_px - 50.0).abs() < 0.1, "Font size: {}", text.font_size_px);
+        assert!(
+            (text.font_size_px - 50.0).abs() < 0.1,
+            "Font size: {}",
+            text.font_size_px
+        );
         assert_eq!(text.content, "Hello World");
         assert_eq!(text.font_weight, "bold");
         assert_eq!(text.color, "#FF0000");
     }
-    
+
     #[test]
     fn test_text_inset_with_bounded_sizing() {
         // Test text in a bounded container - font scales with container size
         // Screen: 1000x1000
         // Bounds: 20%-80% on both axes = 600x600 container at position (200, 200)
         // Font: 0.4 = 40% of 600 = 240px
-        
+
         let text_id = CellId::next();
-        
+
         let bounds = RelativeBounds::new(0.2, 0.8);
-        
-        let root = OntologicalNode::window("root", StackDirection::Primary)
-            .child(
-                OntologicalNode::pane("main", "root", StackDirection::Primary, RelativeSize::Percent(1.0), RelativeSize::Percent(1.0))
-                    .child(
-                        OntologicalNode::bounded_text(
-                            text_id,
-                            "main",
-                            RelativeText::new("Bounded Text").size(0.4),
-                            bounds,
-                            bounds,
-                        )
-                    )
-            );
-        
+
+        let root = OntologicalNode::window("root", StackDirection::Primary).child(
+            OntologicalNode::pane(
+                "main",
+                "root",
+                StackDirection::Primary,
+                RelativeSize::Percent(1.0),
+                RelativeSize::Percent(1.0),
+            )
+            .child(OntologicalNode::bounded_text(
+                text_id,
+                "main",
+                RelativeText::new("Bounded Text").size(0.4),
+                bounds,
+                bounds,
+            )),
+        );
+
         let screen = ResolvedTransform::screen(1000.0, 1000.0);
         let resolved = OntologyResolver::resolve_with_text(&root, screen);
-        
+
         let cell = resolved.get(&text_id).unwrap();
         let text = cell.text.as_ref().expect("Should have text");
-        
+
         // FontSize should be 40% of 600px = 240px
-        assert!((text.font_size_px - 240.0).abs() < 0.1, "Bounded font size: {}", text.font_size_px);
+        assert!(
+            (text.font_size_px - 240.0).abs() < 0.1,
+            "Bounded font size: {}",
+            text.font_size_px
+        );
     }
 }
-

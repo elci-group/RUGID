@@ -9,6 +9,12 @@ pub struct GpuProxyPlatform {
     command_buffer: Vec<GpuCommand>,
 }
 
+impl Default for GpuProxyPlatform {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl GpuProxyPlatform {
     pub fn new() -> Self {
         Self {
@@ -24,13 +30,14 @@ impl Platform for GpuProxyPlatform {
 
     fn render(&mut self, svg: String) {
         self.command_buffer.clear();
-        
+
         // Mock Command Generation
         let rect_count = svg.matches("<rect").count();
-        
+
         for _ in 0..rect_count {
             self.command_buffer.push(GpuCommand::SetColor(0xFF0000FF));
-            self.command_buffer.push(GpuCommand::DrawRect(0.0, 0.0, 100.0, 100.0, 0));
+            self.command_buffer
+                .push(GpuCommand::DrawRect(0.0, 0.0, 100.0, 100.0, 0));
         }
     }
 }

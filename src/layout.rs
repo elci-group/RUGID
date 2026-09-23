@@ -1,5 +1,5 @@
-use crate::geometry::VectorRegion;
 use crate::cell::CellId;
+use crate::geometry::VectorRegion;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -31,7 +31,11 @@ impl LayoutNode {
         }
     }
 
-    pub fn container(direction: LayoutDirection, constraint: LayoutConstraint, children: Vec<LayoutNode>) -> Self {
+    pub fn container(
+        direction: LayoutDirection,
+        constraint: LayoutConstraint,
+        children: Vec<LayoutNode>,
+    ) -> Self {
         Self {
             direction,
             constraint,
@@ -44,13 +48,20 @@ impl LayoutNode {
 pub struct LayoutSolver;
 
 impl LayoutSolver {
-    pub fn solve(root: &LayoutNode, available_space: VectorRegion) -> HashMap<CellId, VectorRegion> {
+    pub fn solve(
+        root: &LayoutNode,
+        available_space: VectorRegion,
+    ) -> HashMap<CellId, VectorRegion> {
         let mut results = HashMap::new();
         Self::solve_recursive(root, available_space, &mut results);
         results
     }
 
-    fn solve_recursive(node: &LayoutNode, region: VectorRegion, results: &mut HashMap<CellId, VectorRegion>) {
+    fn solve_recursive(
+        node: &LayoutNode,
+        region: VectorRegion,
+        results: &mut HashMap<CellId, VectorRegion>,
+    ) {
         if let Some(cell_id) = node.cell_id {
             results.insert(cell_id, region);
             return;
@@ -78,7 +89,7 @@ impl LayoutSolver {
         };
 
         let remaining_space = (axis_size - total_fixed).max(0.0);
-        
+
         let mut current_pos = match node.direction {
             LayoutDirection::StackPrimary => region.origin_p,
             LayoutDirection::StackSecondary => region.origin_s,
@@ -136,7 +147,7 @@ mod tests {
             vec![
                 LayoutNode::leaf(cell1.id, LayoutConstraint::Fixed(0.2)),
                 LayoutNode::leaf(cell2.id, LayoutConstraint::Flex(1.0)),
-            ]
+            ],
         );
 
         let space = VectorRegion::new(0.0, 0.0, 1.0, 1.0);
@@ -148,7 +159,7 @@ mod tests {
         // Check Cell 1 (Fixed 0.2)
         assert!((r1.extent_p - 0.2).abs() < 1e-5);
         assert!((r1.origin_p - 0.0).abs() < 1e-5);
-        
+
         // Check Cell 2 (Flex 1.0 -> Takes remaining 0.8)
         assert!((r2.extent_p - 0.8).abs() < 1e-5);
         assert!((r2.origin_p - 0.2).abs() < 1e-5);

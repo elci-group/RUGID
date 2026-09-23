@@ -8,27 +8,29 @@
 //! .rdf file → Lexer → Tokens → Parser → RdfAst → Converter → OntologicalNode
 //! ```
 
-mod lexer;
-mod parser;
+mod animation;
 mod ast;
 mod converter;
-mod animation;
+mod lexer;
 pub mod loader;
+mod parser;
 
-pub use lexer::{Lexer, Token, TokenType};
-pub use parser::Parser;
-pub use ast::{RdfNode, RdfDocument, ElementClass, AttributeValue};
+pub use animation::{AnimationSpec, AnimationType, parse_animation};
+pub use ast::{AttributeValue, ElementClass, RdfDocument, RdfNode};
 pub use converter::RdfConverter;
-pub use animation::{AnimationType, AnimationSpec, parse_animation};
-pub use loader::{RdfLoader, LoadedScene, SceneMetadata, RdfExtension, AttributeAction, extract_animations_from_rdf};
+pub use lexer::{Lexer, Token, TokenType};
+pub use loader::{
+    AttributeAction, LoadedScene, RdfExtension, RdfLoader, SceneMetadata,
+    extract_animations_from_rdf,
+};
+pub use parser::Parser;
 
-use std::path::Path;
 use std::fs;
+use std::path::Path;
 
 /// Parse an RDF file and convert to OntologicalNode tree
 pub fn parse_file(path: impl AsRef<Path>) -> Result<crate::ontology::OntologicalNode, RdfError> {
-    let content = fs::read_to_string(path.as_ref())
-        .map_err(|e| RdfError::Io(e.to_string()))?;
+    let content = fs::read_to_string(path.as_ref()).map_err(|e| RdfError::Io(e.to_string()))?;
     parse_string(&content)
 }
 
@@ -36,10 +38,10 @@ pub fn parse_file(path: impl AsRef<Path>) -> Result<crate::ontology::Ontological
 pub fn parse_string(content: &str) -> Result<crate::ontology::OntologicalNode, RdfError> {
     let lexer = Lexer::new(content);
     let tokens: Vec<Token> = lexer.collect();
-    
+
     let mut parser = Parser::new(tokens);
     let ast = parser.parse()?;
-    
+
     let converter = RdfConverter::new();
     converter.convert(ast)
 }
@@ -60,7 +62,9 @@ impl std::fmt::Display for RdfError {
             RdfError::Io(msg) => write!(f, "IO Error: {}", msg),
             RdfError::Lexer(msg, line) => write!(f, "Lexer Error (line {}): {}", line, msg),
             RdfError::Parser(msg, line) => write!(f, "Parser Error (line {}): {}", line, msg),
-            RdfError::Validation(msg, line) => write!(f, "Validation Error (line {}): {}", line, msg),
+            RdfError::Validation(msg, line) => {
+                write!(f, "Validation Error (line {}): {}", line, msg)
+            }
             RdfError::Conversion(msg) => write!(f, "Conversion Error: {}", msg),
         }
     }
@@ -71,7 +75,7 @@ impl std::error::Error for RdfError {}
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_simple_parse() {
         let rdf = r#"

@@ -7,8 +7,8 @@
 //! - OBJ (planned)
 //! - glTF (planned)
 
-pub mod stl;
 pub mod converter;
+pub mod stl;
 
 use crate::geometry3d::Point3D;
 
@@ -17,6 +17,12 @@ use crate::geometry3d::Point3D;
 pub struct BoundingBox {
     pub min: Point3D,
     pub max: Point3D,
+}
+
+impl Default for BoundingBox {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl BoundingBox {
@@ -88,15 +94,15 @@ impl CADMesh {
     /// Add a triangle with its three vertices
     pub fn add_triangle(&mut self, v0: Point3D, v1: Point3D, v2: Point3D, normal: Point3D) {
         let base_idx = self.vertices.len();
-        
+
         self.vertices.push(v0);
         self.vertices.push(v1);
         self.vertices.push(v2);
-        
+
         self.bounds.expand(&v0);
         self.bounds.expand(&v1);
         self.bounds.expand(&v2);
-        
+
         self.triangles.push(Triangle {
             vertices: [base_idx, base_idx + 1, base_idx + 2],
             normal,
@@ -142,8 +148,12 @@ impl CADMesh {
             self.name,
             self.vertices.len(),
             self.triangles.len(),
-            self.bounds.min.x, self.bounds.min.y, self.bounds.min.z,
-            self.bounds.max.x, self.bounds.max.y, self.bounds.max.z,
+            self.bounds.min.x,
+            self.bounds.min.y,
+            self.bounds.min.z,
+            self.bounds.max.x,
+            self.bounds.max.y,
+            self.bounds.max.z,
         )
     }
 }
@@ -152,6 +162,12 @@ impl CADMesh {
 #[derive(Clone, Debug)]
 pub struct CADScene {
     pub meshes: Vec<CADMesh>,
+}
+
+impl Default for CADScene {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl CADScene {

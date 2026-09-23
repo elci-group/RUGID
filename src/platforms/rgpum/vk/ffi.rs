@@ -2,6 +2,9 @@
 //!
 //! Minimal definitions needed for RGPUM - we load functions dynamically
 
+#![allow(non_camel_case_types)]
+#![allow(non_snake_case)]
+
 use std::os::raw::{c_char, c_void};
 
 // Vulkan handles (opaque pointers)
@@ -84,10 +87,8 @@ pub const VK_QUEUE_GRAPHICS_BIT: u32 = 0x00000001;
 // Function pointer types
 pub type PFN_vkVoidFunction = *const c_void;
 
-pub type PFN_vkGetInstanceProcAddr = unsafe extern "system" fn(
-    instance: VkInstance,
-    pName: *const c_char,
-) -> PFN_vkVoidFunction;
+pub type PFN_vkGetInstanceProcAddr =
+    unsafe extern "system" fn(instance: VkInstance, pName: *const c_char) -> PFN_vkVoidFunction;
 
 pub type PFN_vkCreateInstance = unsafe extern "system" fn(
     pCreateInfo: *const VkInstanceCreateInfo,
@@ -95,10 +96,8 @@ pub type PFN_vkCreateInstance = unsafe extern "system" fn(
     pInstance: *mut VkInstance,
 ) -> VkResult;
 
-pub type PFN_vkDestroyInstance = unsafe extern "system" fn(
-    instance: VkInstance,
-    pAllocator: *const c_void,
-);
+pub type PFN_vkDestroyInstance =
+    unsafe extern "system" fn(instance: VkInstance, pAllocator: *const c_void);
 
 pub type PFN_vkEnumeratePhysicalDevices = unsafe extern "system" fn(
     instance: VkInstance,

@@ -1,7 +1,7 @@
-use rugid::runtime::Runtime;
 use rugid::cell::Cell;
 use rugid::geometry::VectorRegion;
 use rugid::platform::{Platform, PlatformEvent};
+use rugid::runtime::Runtime;
 use rugid::widgets::ButtonProjector;
 use std::fs;
 use std::path::Path;
@@ -16,7 +16,9 @@ struct SharedTuiPlatform {
 }
 
 impl Platform for SharedTuiPlatform {
-    fn poll_events(&mut self) -> Vec<PlatformEvent> { Vec::new() }
+    fn poll_events(&mut self) -> Vec<PlatformEvent> {
+        Vec::new()
+    }
     fn render(&mut self, svg: String) {
         let rect_count = svg.matches("<rect").count();
         let mut buf = self.buffer.lock().unwrap();
@@ -44,13 +46,17 @@ struct SharedBitmapPlatform {
 }
 
 impl Platform for SharedBitmapPlatform {
-    fn poll_events(&mut self) -> Vec<PlatformEvent> { Vec::new() }
+    fn poll_events(&mut self) -> Vec<PlatformEvent> {
+        Vec::new()
+    }
     fn render(&mut self, svg: String) {
         let rect_count = svg.matches("<rect").count();
         let mut buf = self.buffer.lock().unwrap();
         // Fill with black
-        for b in buf.iter_mut() { *b = 0; }
-        
+        for b in buf.iter_mut() {
+            *b = 0;
+        }
+
         // Draw some white pixels based on rect count
         // Simple visualization
         let pixels = (rect_count * 100).min(self.width * self.height);
@@ -58,8 +64,8 @@ impl Platform for SharedBitmapPlatform {
             let idx = i * 3;
             if idx + 2 < buf.len() {
                 buf[idx] = 255;
-                buf[idx+1] = 255;
-                buf[idx+2] = 255;
+                buf[idx + 1] = 255;
+                buf[idx + 2] = 255;
             }
         }
     }
@@ -70,15 +76,21 @@ struct SharedGpuPlatform {
 }
 
 impl Platform for SharedGpuPlatform {
-    fn poll_events(&mut self) -> Vec<PlatformEvent> { Vec::new() }
+    fn poll_events(&mut self) -> Vec<PlatformEvent> {
+        Vec::new()
+    }
     fn render(&mut self, svg: String) {
         let rect_count = svg.matches("<rect").count();
         let mut log = self.log.lock().unwrap();
         log.clear();
         log.push("BEGIN_FRAME".to_string());
-        log.push(format!("  BIND_PIPELINE(Rect)"));
+        log.push("  BIND_PIPELINE(Rect)".to_string());
         for i in 0..rect_count {
-            log.push(format!("  DRAW_RECT(x={}, y={}, w=10, h=10, color=RED)", i * 10, i * 10));
+            log.push(format!(
+                "  DRAW_RECT(x={}, y={}, w=10, h=10, color=RED)",
+                i * 10,
+                i * 10
+            ));
         }
         log.push("END_FRAME".to_string());
         log.push("PRESENT".to_string());
@@ -93,18 +105,25 @@ fn run_headless_demo(output_dir: &Path) {
     // But we need a dummy platform to satisfy the type system.
     struct DummyPlatform;
     impl Platform for DummyPlatform {
-        fn poll_events(&mut self) -> Vec<PlatformEvent> { Vec::new() }
+        fn poll_events(&mut self) -> Vec<PlatformEvent> {
+            Vec::new()
+        }
         fn render(&mut self, _svg: String) {}
     }
 
     let mut runtime = Runtime::new(100, Box::new(DummyPlatform));
     let cell = Cell::new(VectorRegion::new(0.0, 0.0, 10.0, 10.0));
     let id = cell.id;
-    runtime.register_cell(cell, Box::new(ButtonProjector {
-        target: id,
-        geometry: VectorRegion::new(0.0, 0.0, 10.0, 10.0),
-        label: "Btn".to_string(),
-    }), None, None);
+    runtime.register_cell(
+        cell,
+        Box::new(ButtonProjector {
+            target: id,
+            geometry: VectorRegion::new(0.0, 0.0, 10.0, 10.0),
+            label: "Btn".to_string(),
+        }),
+        None,
+        None,
+    );
 
     for i in 0..3 {
         let svg = runtime.tick();
@@ -124,11 +143,16 @@ fn run_tui_demo(output_dir: &Path) {
     let mut runtime = Runtime::new(100, platform);
     let cell = Cell::new(VectorRegion::new(0.0, 0.0, 10.0, 10.0));
     let id = cell.id;
-    runtime.register_cell(cell, Box::new(ButtonProjector {
-        target: id,
-        geometry: VectorRegion::new(0.0, 0.0, 10.0, 10.0),
-        label: "Btn".to_string(),
-    }), None, None);
+    runtime.register_cell(
+        cell,
+        Box::new(ButtonProjector {
+            target: id,
+            geometry: VectorRegion::new(0.0, 0.0, 10.0, 10.0),
+            label: "Btn".to_string(),
+        }),
+        None,
+        None,
+    );
 
     for i in 0..3 {
         runtime.tick();
@@ -151,11 +175,16 @@ fn run_bitmap_demo(output_dir: &Path) {
     let mut runtime = Runtime::new(100, platform);
     let cell = Cell::new(VectorRegion::new(0.0, 0.0, 10.0, 10.0));
     let id = cell.id;
-    runtime.register_cell(cell, Box::new(ButtonProjector {
-        target: id,
-        geometry: VectorRegion::new(0.0, 0.0, 10.0, 10.0),
-        label: "Btn".to_string(),
-    }), None, None);
+    runtime.register_cell(
+        cell,
+        Box::new(ButtonProjector {
+            target: id,
+            geometry: VectorRegion::new(0.0, 0.0, 10.0, 10.0),
+            label: "Btn".to_string(),
+        }),
+        None,
+        None,
+    );
 
     for i in 0..3 {
         runtime.tick();
@@ -172,18 +201,21 @@ fn run_bitmap_demo(output_dir: &Path) {
 fn run_gpu_demo(output_dir: &Path) {
     println!("Generating GPU Proxy Demo (Log)...");
     let log = Arc::new(Mutex::new(Vec::new()));
-    let platform = Box::new(SharedGpuPlatform {
-        log: log.clone(),
-    });
+    let platform = Box::new(SharedGpuPlatform { log: log.clone() });
 
     let mut runtime = Runtime::new(100, platform);
     let cell = Cell::new(VectorRegion::new(0.0, 0.0, 10.0, 10.0));
     let id = cell.id;
-    runtime.register_cell(cell, Box::new(ButtonProjector {
-        target: id,
-        geometry: VectorRegion::new(0.0, 0.0, 10.0, 10.0),
-        label: "Btn".to_string(),
-    }), None, None);
+    runtime.register_cell(
+        cell,
+        Box::new(ButtonProjector {
+            target: id,
+            geometry: VectorRegion::new(0.0, 0.0, 10.0, 10.0),
+            label: "Btn".to_string(),
+        }),
+        None,
+        None,
+    );
 
     for i in 0..3 {
         runtime.tick();

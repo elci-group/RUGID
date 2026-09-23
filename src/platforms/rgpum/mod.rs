@@ -1,10 +1,10 @@
 //! RGPUM - RUGID Graphics Processor Unit Manager
-//! 
+//!
 //! High-performance custom graphics backend with direct Vulkan API access.
 //! Designed to replace wgpu with optimized buffer management and reduced overhead.
 
-mod vk;  // Custom minimal Vulkan wrapper
 mod simple_platform;
+mod vk; // Custom minimal Vulkan wrapper
 
 // Old implementations moved to .old files for future reference
 // mod buffer_pool;
@@ -12,8 +12,6 @@ mod simple_platform;
 // mod command_pool;
 
 pub use simple_platform::RgpumPlatform;
-
-use crate::platform::{Platform, PlatformEvent};
 
 /// RGPUM configuration
 pub struct RgpumConfig {

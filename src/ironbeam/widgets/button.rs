@@ -16,7 +16,7 @@ impl Button {
             clicked: false,
         }
     }
-    
+
     pub fn render(&self) -> String {
         format!(
             r##"<rect width="100" height="30" fill="#007acc" rx="4" />

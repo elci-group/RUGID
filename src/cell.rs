@@ -1,5 +1,5 @@
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::fmt;
+use std::sync::atomic::{AtomicU64, Ordering};
 
 static CELL_ID_COUNTER: AtomicU64 = AtomicU64::new(1);
 
@@ -16,7 +16,7 @@ impl CellId {
     pub fn next() -> Self {
         CellId(CELL_ID_COUNTER.fetch_add(1, Ordering::Relaxed))
     }
-    
+
     pub fn generate() -> Self {
         Self::next()
     }
@@ -54,29 +54,29 @@ impl Rotation3DState {
             component_speed: 0.0,
         }
     }
-    
+
     pub fn with_opacity(mut self, opacity: f32) -> Self {
         self.opacity = opacity;
         self
     }
-    
+
     /// Set component animation speed (e.g., for spinning wheels)
     pub fn with_component_speed(mut self, speed: f32) -> Self {
         self.component_speed = speed;
         self
     }
-    
+
     /// Update rotation based on velocity (call each frame)
     pub fn update(&mut self) {
         self.current.pitch += self.velocity.pitch;
         self.current.yaw += self.velocity.yaw;
         self.current.roll += self.velocity.roll;
-        
+
         // Keep angles in 0-360 range
         self.current.pitch %= 360.0;
         self.current.yaw %= 360.0;
         self.current.roll %= 360.0;
-        
+
         // Update component animation
         self.component_angle += self.component_speed;
         if self.component_angle > std::f32::consts::TAU {
@@ -119,7 +119,7 @@ impl Cell {
             physics_state: None,
         }
     }
-    
+
     /// Create a cell with initial morphism state
     pub fn with_shape(geometry: VectorRegion, shape: crate::morphism::ShapeType) -> Self {
         Self {
@@ -130,9 +130,14 @@ impl Cell {
             physics_state: None,
         }
     }
-    
+
     /// Create a cell with 3D rotation
-    pub fn with_3d_rotation(geometry: VectorRegion, x_speed: f32, y_speed: f32, z_speed: f32) -> Self {
+    pub fn with_3d_rotation(
+        geometry: VectorRegion,
+        x_speed: f32,
+        y_speed: f32,
+        z_speed: f32,
+    ) -> Self {
         Self {
             id: CellId::next(),
             geometry,

@@ -8,8 +8,8 @@
 //! - Gravitational time dilation
 //! - Geodesic motion
 
-use crate::geometry3d::Point3D;
 use crate::cell::CellId;
+use crate::geometry3d::Point3D;
 use std::collections::HashMap;
 
 /// Speed of light (scaled for UI simulation)
@@ -158,6 +158,12 @@ pub struct RelativitySystem {
     pub massive_bodies: Vec<(Point3D, f32, f32)>, // (position, mass, schwarzschild_radius)
 }
 
+impl Default for RelativitySystem {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl RelativitySystem {
     pub fn new() -> Self {
         Self {
@@ -169,11 +175,8 @@ impl RelativitySystem {
 
     pub fn register(&mut self, id: CellId, state: RelativisticState) {
         if state.is_massive {
-            self.massive_bodies.push((
-                state.position,
-                state.rest_mass,
-                state.schwarzschild_radius,
-            ));
+            self.massive_bodies
+                .push((state.position, state.rest_mass, state.schwarzschild_radius));
         }
         self.bodies.insert(id, state);
     }
@@ -195,7 +198,8 @@ impl RelativitySystem {
                     let dy = body.position.y - massive_pos.y;
                     let dz = body.position.z - massive_pos.z;
                     let dist = (dx * dx + dy * dy + dz * dz).sqrt();
-                    gamma_gravitational *= RelativityHelpers::gravitational_time_dilation(*r_s, dist);
+                    gamma_gravitational *=
+                        RelativityHelpers::gravitational_time_dilation(*r_s, dist);
                 }
 
                 let total_gamma = gamma_kinematic * gamma_gravitational;

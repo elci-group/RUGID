@@ -1,11 +1,17 @@
-use crate::physics::core::PhysicsState;
-use crate::geometry3d::Point3D;
-use std::collections::HashMap;
 use crate::cell::CellId;
+use crate::geometry3d::Point3D;
+use crate::physics::core::PhysicsState;
+use std::collections::HashMap;
 
 pub struct PhysicsSystem {
     pub gravity: Point3D,
     pub states: HashMap<CellId, PhysicsState>,
+}
+
+impl Default for PhysicsSystem {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl PhysicsSystem {
@@ -46,11 +52,11 @@ impl PhysicsSystem {
             // Reset acceleration (forces are applied per frame)
             state.acceleration = Point3D::new(0.0, 0.0, 0.0);
         }
-        
+
         // 2. Resolve Collisions (Placeholder)
         // self.resolve_collisions();
     }
-    
+
     /// Get the calculated translation offset for a body (displacement from origin)
     pub fn get_deltas(&self) -> HashMap<CellId, Point3D> {
         let mut deltas = HashMap::new();

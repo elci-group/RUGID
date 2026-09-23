@@ -44,8 +44,12 @@ impl Scheduler {
         }
 
         // Sort by age (descending)
-        let mut entries: Vec<(MegaCellId, u64)> = self.active_megacells.iter().map(|(k, v)| (*k, *v)).collect();
-        entries.sort_by(|a, b| b.1.cmp(&a.1));
+        let mut entries: Vec<(MegaCellId, u64)> = self
+            .active_megacells
+            .iter()
+            .map(|(k, v)| (*k, *v))
+            .collect();
+        entries.sort_by_key(|a| std::cmp::Reverse(a.1));
 
         let count = self.max_megacells_per_tick.min(entries.len());
         let (scheduled, deferred) = entries.split_at(count);
@@ -77,7 +81,7 @@ mod tests {
     #[test]
     fn test_scheduler_budget() {
         let mut scheduler = Scheduler::new(2);
-        
+
         scheduler.schedule(MegaCellId(1));
         scheduler.schedule(MegaCellId(2));
         scheduler.schedule(MegaCellId(3));
@@ -89,7 +93,7 @@ mod tests {
     #[test]
     fn test_scheduler_fairness() {
         let mut scheduler = Scheduler::new(1);
-        
+
         scheduler.schedule(MegaCellId(1));
         scheduler.schedule(MegaCellId(2));
 
@@ -101,7 +105,7 @@ mod tests {
 
         // The other one should have age 1 now.
         // The picked one has age 0.
-        
+
         let batch2 = scheduler.next_batch();
         assert_eq!(batch2.len(), 1);
         let picked2 = batch2[0];

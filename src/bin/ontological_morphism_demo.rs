@@ -2,14 +2,16 @@
 //!
 //! Demonstrates declarative shape definitions in the ontological hierarchy
 
-use rugid::runtime::Runtime;
 use rugid::cell::{Cell, CellId};
 use rugid::geometry::VectorRegion;
-use rugid::ontology::{OntologicalNode, OntologyResolver, ResolvedTransform, StackDirection, RelativeSize};
-use rugid::morphism::{ShapeType, MorphismState};
+use rugid::morphism::{MorphismState, ShapeType};
+use rugid::ontology::{
+    OntologicalNode, OntologyResolver, RelativeSize, ResolvedTransform, StackDirection,
+};
+use rugid::platforms::bitmap::BitmapPlatform;
+use rugid::runtime::Runtime;
 use rugid::temporal::{DeltaFrame, DeltaProgram, DeltaType};
 use rugid::widgets::ButtonProjector;
-use rugid::platforms::bitmap::BitmapPlatform;
 use std::collections::HashMap;
 
 fn main() {
@@ -21,10 +23,10 @@ fn main() {
 
     // Build UI with declaratively shaped widgets
     let root = build_shaped_layout(&mut cell_map);
-    
+
     let screen = ResolvedTransform::screen(800.0, 600.0);
     let resolved = OntologyResolver::resolve_with_text(&root, screen);
-    
+
     // Register cells with their declared shapes
     for (name, cell_id) in &cell_map {
         if let Some(resolved_cell) = resolved.get(cell_id) {
@@ -36,19 +38,21 @@ fn main() {
                 transform.width / 800.0,
             ));
             cell.id = *cell_id;
-            
+
             // Set morphism state based on resolved shape
             // (In full implementation, this would come from LocalSpace.shape)
             if name.contains("circle") {
                 cell.morphism = Some(MorphismState::new(ShapeType::Circle));
             } else if name.contains("rounded") {
-                cell.morphism = Some(MorphismState::new(ShapeType::RoundedRectangle { radius: 0.15 }));
+                cell.morphism = Some(MorphismState::new(ShapeType::RoundedRectangle {
+                    radius: 0.15,
+                }));
             } else if name.contains("poly") {
                 cell.morphism = Some(MorphismState::new(ShapeType::Polygon { sides: 6 }));
             } else {
                 cell.morphism = Some(MorphismState::new(ShapeType::Rectangle));
             }
-            
+
             let color = if name.contains("circle") {
                 "#3498DB" // Blue
             } else if name.contains("rounded") {
@@ -58,7 +62,7 @@ fn main() {
             } else {
                 "#9B59B6" // Purple
             };
-            
+
             runtime.register_cell(
                 cell,
                 Box::new(ButtonProjector {
@@ -69,14 +73,14 @@ fn main() {
                 None,
                 None,
             );
-            
+
             runtime.renderer.update_color(*cell_id, color.to_string());
         }
     }
-    
+
     println!("\n📊 Registered {} shaped cells", cell_map.len());
     println!("\n🎬 Scheduling morphing animations...\n");
-    
+
     // Demo: Circles morph to squares
     if let Some(&circle_id) = cell_map.get("circle_left") {
         let mut frames = Vec::new();
@@ -86,12 +90,12 @@ fn main() {
             frame.target_shape = Some(ShapeType::Rectangle);
             frames.push(frame);
         }
-        runtime.temporal.add_program(DeltaProgram::new(
-            circle_id, frames, DeltaType::Greasy
-        ));
+        runtime
+            .temporal
+            .add_program(DeltaProgram::new(circle_id, frames, DeltaType::Greasy));
         println!("✅ Circle → Rectangle animation scheduled");
     }
-    
+
     // Demo: Squares morph to rounded
     if let Some(&rect_id) = cell_map.get("rect_right") {
         let mut frames = Vec::new();
@@ -101,12 +105,12 @@ fn main() {
             frame.target_shape = Some(ShapeType::RoundedRectangle { radius: 0.25 });
             frames.push(frame);
         }
-        runtime.temporal.add_program(DeltaProgram::new(
-            rect_id, frames, DeltaType::Greasy
-        ));
+        runtime
+            .temporal
+            .add_program(DeltaProgram::new(rect_id, frames, DeltaType::Greasy));
         println!("✅ Rectangle → Rounded animation scheduled");
     }
-    
+
     // Demo: Polygons morph to circles
     if let Some(&poly_id) = cell_map.get("poly_center") {
         let mut frames = Vec::new();
@@ -116,21 +120,21 @@ fn main() {
             frame.target_shape = Some(ShapeType::Circle);
             frames.push(frame);
         }
-        runtime.temporal.add_program(DeltaProgram::new(
-            poly_id, frames, DeltaType::Greasy
-        ));
+        runtime
+            .temporal
+            .add_program(DeltaProgram::new(poly_id, frames, DeltaType::Greasy));
         println!("✅ Polygon → Circle animation scheduled");
     }
-    
+
     println!("\n🎥 Rendering 100 frames...\n");
-    
+
     for i in 0..100 {
         runtime.tick();
         if i % 25 == 0 {
             println!("Frame {:3}/100", i);
         }
     }
-    
+
     println!("\n✨ Demo complete!");
     println!("\n💡 Key Features Demonstrated:");
     println!("  ✓ Declarative shape definitions in ontological nodes");
@@ -147,7 +151,7 @@ fn build_shaped_layout(cells: &mut HashMap<&'static str, CellId>) -> Ontological
             id
         }};
     }
-    
+
     OntologicalNode::window("root", StackDirection::Primary)
         .child(
             // Row 1: Circles
@@ -158,24 +162,24 @@ fn build_shaped_layout(cells: &mut HashMap<&'static str, CellId>) -> Ontological
                 RelativeSize::Percent(0.33),
                 RelativeSize::Percent(1.0),
             )
-                .child(OntologicalNode::circular_widget(
-                    cell!("circle_left"),
-                    "row1",
-                    RelativeSize::Percent(0.3),
-                    RelativeSize::Percent(0.3),
-                ))
-                .child(OntologicalNode::circular_widget(
-                    cell!("circle_middle"),
-                    "row1",
-                    RelativeSize::Percent(0.3),
-                    RelativeSize::Percent(0.3),
-                ))
-                .child(OntologicalNode::circular_widget(
-                    cell!("circle_right"),
-                    "row1",
-                    RelativeSize::Percent(0.3),
-                    RelativeSize::Percent(0.3),
-                ))
+            .child(OntologicalNode::circular_widget(
+                cell!("circle_left"),
+                "row1",
+                RelativeSize::Percent(0.3),
+                RelativeSize::Percent(0.3),
+            ))
+            .child(OntologicalNode::circular_widget(
+                cell!("circle_middle"),
+                "row1",
+                RelativeSize::Percent(0.3),
+                RelativeSize::Percent(0.3),
+            ))
+            .child(OntologicalNode::circular_widget(
+                cell!("circle_right"),
+                "row1",
+                RelativeSize::Percent(0.3),
+                RelativeSize::Percent(0.3),
+            )),
         )
         .child(
             // Row 2: Mixed shapes
@@ -186,27 +190,27 @@ fn build_shaped_layout(cells: &mut HashMap<&'static str, CellId>) -> Ontological
                 RelativeSize::Percent(0.33),
                 RelativeSize::Percent(1.0),
             )
-                .child(OntologicalNode::rounded_widget(
-                    cell!("rounded_left"),
-                    "row2",
-                    RelativeSize::Percent(0.3),
-                    RelativeSize::Percent(0.3),
-                    0.15,
-                ))
-                .child(OntologicalNode::shaped_widget(
-                    cell!("poly_center"),
-                    "row2",
-                    RelativeSize::Percent(0.3),
-                    RelativeSize::Percent(0.3),
-                    ShapeType::Polygon { sides: 6 },
-                ))
-                .child(OntologicalNode::rounded_widget(
-                    cell!("rounded_right"),
-                    "row2",
-                    RelativeSize::Percent(0.3),
-                    RelativeSize::Percent(0.3),
-                    0.15,
-                ))
+            .child(OntologicalNode::rounded_widget(
+                cell!("rounded_left"),
+                "row2",
+                RelativeSize::Percent(0.3),
+                RelativeSize::Percent(0.3),
+                0.15,
+            ))
+            .child(OntologicalNode::shaped_widget(
+                cell!("poly_center"),
+                "row2",
+                RelativeSize::Percent(0.3),
+                RelativeSize::Percent(0.3),
+                ShapeType::Polygon { sides: 6 },
+            ))
+            .child(OntologicalNode::rounded_widget(
+                cell!("rounded_right"),
+                "row2",
+                RelativeSize::Percent(0.3),
+                RelativeSize::Percent(0.3),
+                0.15,
+            )),
         )
         .child(
             // Row 3: Rectangles
@@ -217,23 +221,23 @@ fn build_shaped_layout(cells: &mut HashMap<&'static str, CellId>) -> Ontological
                 RelativeSize::Percent(0.33),
                 RelativeSize::Percent(1.0),
             )
-                .child(OntologicalNode::widget(
-                    cell!("rect_left"),
-                    "row3",
-                    RelativeSize::Percent(0.3),
-                    RelativeSize::Percent(0.3),
-                ))
-                .child(OntologicalNode::widget(
-                    cell!("rect_middle"),
-                    "row3",
-                    RelativeSize::Percent(0.3),
-                    RelativeSize::Percent(0.3),
-                ))
-                .child(OntologicalNode::widget(
-                    cell!("rect_right"),
-                    "row3",
-                    RelativeSize::Percent(0.3),
-                    RelativeSize::Percent(0.3),
-                ))
+            .child(OntologicalNode::widget(
+                cell!("rect_left"),
+                "row3",
+                RelativeSize::Percent(0.3),
+                RelativeSize::Percent(0.3),
+            ))
+            .child(OntologicalNode::widget(
+                cell!("rect_middle"),
+                "row3",
+                RelativeSize::Percent(0.3),
+                RelativeSize::Percent(0.3),
+            ))
+            .child(OntologicalNode::widget(
+                cell!("rect_right"),
+                "row3",
+                RelativeSize::Percent(0.3),
+                RelativeSize::Percent(0.3),
+            )),
         )
 }

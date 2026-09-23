@@ -1,36 +1,36 @@
 //! IronBeam RGD Format
-//! 
+//!
 //! Native binary format for RUGID assets.
 
 use crate::cad::BoundingBox;
+use std::fs::File;
 use std::io::{self, Read, Write};
 use std::path::Path;
-use std::fs::File;
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct RgdHeader {
     /// Magic bytes: "RUGID\0\0\0"
     pub magic: [u8; 8],
-    
+
     /// Format version (major.minor.patch as u8s, 1 reserved)
     pub version: [u8; 4],
-    
+
     /// Flags
     pub flags: u32,
-    
+
     /// Number of mesh chunks
     pub mesh_count: u32,
-    
+
     /// Number of material chunks
     pub material_count: u32,
-    
+
     /// Number of animation chunks
     pub animation_count: u32,
-    
+
     /// Padding for alignment
     pub _padding: [u8; 4],
-    
+
     /// Offset to chunk table
     pub chunk_table_offset: u64,
 }
@@ -71,6 +71,12 @@ pub struct RgdDocument {
     pub meshes: Vec<RgdMeshChunk>,
 }
 
+impl Default for RgdDocument {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl RgdDocument {
     pub fn new() -> Self {
         Self {
@@ -90,28 +96,31 @@ impl RgdDocument {
 
     pub fn save(&self, path: &Path) -> Result<(), RgdError> {
         let mut file = File::create(path)?;
-        
+
         // Write header
         file.write_all(bytemuck::bytes_of(&self.header))?;
-        
+
         // Placeholder for full implementation
         // Would write chunk table and chunks here
-        
+
         Ok(())
     }
-    
+
     pub fn load(path: &Path) -> Result<Self, RgdError> {
         let mut file = File::open(path)?;
-        
+
         // Read and validate header
         let mut header_bytes = [0u8; 32];
         file.read_exact(&mut header_bytes)?;
         let header: RgdHeader = *bytemuck::from_bytes(&header_bytes);
-        
+
         if &header.magic != b"RUGID\0\0\0" {
             return Err(RgdError::InvalidMagic);
         }
-        
-        Ok(Self { header, meshes: Vec::new() })
+
+        Ok(Self {
+            header,
+            meshes: Vec::new(),
+        })
     }
 }

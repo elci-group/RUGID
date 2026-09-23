@@ -1,9 +1,9 @@
-use rugid::runtime::Runtime;
 use rugid::cell::Cell;
 use rugid::geometry::VectorRegion;
-use rugid::layout::{LayoutNode, LayoutDirection, LayoutConstraint, LayoutSolver};
-use rugid::widgets::{ButtonProjector, SliderProjector};
+use rugid::layout::{LayoutConstraint, LayoutDirection, LayoutNode, LayoutSolver};
 use rugid::platform::HeadlessPlatform;
+use rugid::runtime::Runtime;
+use rugid::widgets::{ButtonProjector, SliderProjector};
 use std::fs;
 
 fn main() {
@@ -16,7 +16,7 @@ fn main() {
     // ================================================
     // CELL DEFINITIONS
     // ================================================
-    
+
     // --- Header Row ---
     let mut logo_cell = Cell::new(VectorRegion::new(0.0, 0.0, 0.0, 0.0));
     let mut search_cell = Cell::new(VectorRegion::new(0.0, 0.0, 0.0, 0.0));
@@ -61,7 +61,7 @@ fn main() {
             LayoutNode::leaf(menu_btn_cell.id, LayoutConstraint::Fixed(0.05)),
             LayoutNode::leaf(settings_btn_cell.id, LayoutConstraint::Fixed(0.05)),
             LayoutNode::leaf(profile_btn_cell.id, LayoutConstraint::Fixed(0.05)),
-        ]
+        ],
     );
 
     // Sidebar: [Header][Playlist1][Playlist2][Playlist3][Library][Downloads]
@@ -75,7 +75,7 @@ fn main() {
             LayoutNode::leaf(playlist_3_cell.id, LayoutConstraint::Fixed(0.05)),
             LayoutNode::leaf(library_btn_cell.id, LayoutConstraint::Fixed(0.05)),
             LayoutNode::leaf(downloads_btn_cell.id, LayoutConstraint::Fixed(0.05)),
-        ]
+        ],
     );
 
     // Video Section: [Video][Title][Info]
@@ -86,17 +86,14 @@ fn main() {
             LayoutNode::leaf(video_cell.id, LayoutConstraint::Flex(1.0)),
             LayoutNode::leaf(video_title_cell.id, LayoutConstraint::Fixed(0.05)),
             LayoutNode::leaf(video_info_cell.id, LayoutConstraint::Fixed(0.04)),
-        ]
+        ],
     );
 
     // Main Area: [Sidebar][Video Section]
     let main_area = LayoutNode::container(
         LayoutDirection::StackSecondary, // Horizontal
         LayoutConstraint::Flex(1.0),
-        vec![
-            sidebar_layout,
-            video_section,
-        ]
+        vec![sidebar_layout, video_section],
     );
 
     // Control Bar: [Prev][Play][Next][Timeline][Time][Volume Icon][Volume Slider][Fullscreen]
@@ -112,18 +109,14 @@ fn main() {
             LayoutNode::leaf(volume_icon_cell.id, LayoutConstraint::Fixed(0.04)),
             LayoutNode::leaf(volume_slider_cell.id, LayoutConstraint::Fixed(0.10)),
             LayoutNode::leaf(fullscreen_btn_cell.id, LayoutConstraint::Fixed(0.04)),
-        ]
+        ],
     );
 
     // Root: [Header][Main Area][Control Bar]
     let root = LayoutNode::container(
         LayoutDirection::StackPrimary, // Vertical
         LayoutConstraint::Fixed(1.0),
-        vec![
-            header_layout,
-            main_area,
-            control_bar,
-        ]
+        vec![header_layout, main_area, control_bar],
     );
 
     // Solve Layout
@@ -139,11 +132,16 @@ fn main() {
             let id = $cell.id;
             if let Some(geo) = layout_map.get(&id) {
                 $cell.geometry = *geo;
-                runtime.register_cell($cell, Box::new(ButtonProjector {
-                    target: id,
-                    geometry: *geo,
-                    label: $label.to_string(),
-                }), None, None);
+                runtime.register_cell(
+                    $cell,
+                    Box::new(ButtonProjector {
+                        target: id,
+                        geometry: *geo,
+                        label: $label.to_string(),
+                    }),
+                    None,
+                    None,
+                );
             }
         }};
     }
@@ -153,11 +151,16 @@ fn main() {
             let id = $cell.id;
             if let Some(geo) = layout_map.get(&id) {
                 $cell.geometry = *geo;
-                runtime.register_cell($cell, Box::new(SliderProjector {
-                    target: id,
-                    geometry: *geo,
-                    value: $value,
-                }), None, None);
+                runtime.register_cell(
+                    $cell,
+                    Box::new(SliderProjector {
+                        target: id,
+                        geometry: *geo,
+                        value: $value,
+                    }),
+                    None,
+                    None,
+                );
             }
         }};
     }
@@ -197,21 +200,22 @@ fn main() {
     // ================================================
 
     let svg = runtime.tick();
-    
+
     // Print layout summary
     println!("Layout Summary:");
     println!("  Header: 5 elements (Logo, Search, Menu, Settings, Profile)");
     println!("  Sidebar: 6 elements (Header, 3 Playlists, Library, Downloads)");
     println!("  Video Area: 3 elements (Player, Title, Info)");
-    println!("  Controls: 8 elements (Prev, Play, Next, Timeline, Time, Vol Icon, Vol Slider, Fullscreen)");
+    println!(
+        "  Controls: 8 elements (Prev, Play, Next, Timeline, Time, Vol Icon, Vol Slider, Fullscreen)"
+    );
     println!("\nTotal: 22 UI cells\n");
 
     fs::write("media_player_preview.svg", &svg).unwrap();
     println!("✅ Saved to media_player_preview.svg");
-    
+
     // Also save to output dir for consistency
     fs::create_dir_all("output").ok();
     fs::write("output/media_player_full.svg", &svg).unwrap();
     println!("✅ Saved to output/media_player_full.svg");
 }
-

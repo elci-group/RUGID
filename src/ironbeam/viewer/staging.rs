@@ -1,9 +1,9 @@
 //! IronBeam Staging System
-//! 
+//!
 //! Manages the collection of 3D models present in the scene.
 
-use crate::cell::CellId;
 use crate::cad::CADMesh;
+use crate::cell::CellId;
 use crate::geometry3d::{Point3D, Rotation3D};
 use std::collections::{HashMap, HashSet};
 
@@ -54,7 +54,11 @@ pub struct StagedModel {
 pub enum StagingAction {
     Add(StagedModel),
     Remove(CellId),
-    Transform { id: CellId, before: Transform3D, after: Transform3D },
+    Transform {
+        id: CellId,
+        before: Transform3D,
+        after: Transform3D,
+    },
     Group(Vec<CellId>),
     Ungroup(CellId),
 }
@@ -65,6 +69,12 @@ pub struct StagingManager {
     pub clipboard: Vec<StagedModel>,
     pub undo_stack: Vec<StagingAction>,
     pub redo_stack: Vec<StagingAction>,
+}
+
+impl Default for StagingManager {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl StagingManager {
@@ -94,33 +104,33 @@ impl StagingManager {
         self.redo_stack.clear();
         id
     }
-    
+
     pub fn select(&mut self, id: CellId, additive: bool) {
         if !additive {
             self.active_selection.clear();
         }
         self.active_selection.insert(id);
     }
-    
+
     pub fn deselect_all(&mut self) {
         self.active_selection.clear();
     }
-    
+
     pub fn get_selection_center(&self) -> Option<Point3D> {
         if self.active_selection.is_empty() {
             return None;
         }
-        
+
         let mut sum = Point3D::zero();
         let mut count = 0.0;
-        
+
         for id in &self.active_selection {
             if let Some(model) = self.models.get(id) {
                 sum += model.transform.position;
                 count += 1.0;
             }
         }
-        
+
         if count > 0.0 {
             Some(Point3D::new(sum.x / count, sum.y / count, sum.z / count))
         } else {

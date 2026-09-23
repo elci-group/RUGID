@@ -1,9 +1,9 @@
 //! IronBeam Gemini Integration
-//! 
+//!
 //! AI assistance for the IDE.
 
-use std::path::PathBuf;
 use std::collections::HashMap;
+use std::path::PathBuf;
 
 pub struct GeminiClient {
     pub api_key: String,
@@ -31,7 +31,7 @@ impl GeminiClient {
         // Since we don't have reqwest, we'd need to add it or use a system call
         Ok("// AI completion would appear here".to_string())
     }
-    
+
     pub async fn explain(&self, _code: &str) -> Result<String, String> {
         Ok("Explanation of the code...".to_string())
     }

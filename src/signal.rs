@@ -1,6 +1,6 @@
+use std::fmt;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::fmt;
 
 static SIGNAL_ID_COUNTER: AtomicU64 = AtomicU64::new(1);
 

@@ -1,5 +1,5 @@
 //! IronBeam glTF Format
-//! 
+//!
 //! Placeholder for glTF support.
 
 pub struct GltfParser;

@@ -1,13 +1,13 @@
-use crate::platform::{Platform, PlatformEvent};
 use crate::input::InputEvent;
-use winit::window::Window;
-use winit::event::{Event, WindowEvent, ElementState, MouseButton};
-use wgpu::util::DeviceExt;
-use std::sync::Arc;
+use crate::platform::{Platform, PlatformEvent};
 use glyphon::{
     Attrs, Buffer, Color, Family, FontSystem, Metrics, Resolution, Shaping, SwashCache, TextArea,
     TextAtlas, TextBounds, TextRenderer,
 };
+use std::sync::Arc;
+use wgpu::util::DeviceExt;
+use winit::event::{ElementState, Event, MouseButton, WindowEvent};
+use winit::window::Window;
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
@@ -76,30 +76,42 @@ impl WgpuPlatform {
             backends: wgpu::Backends::all(),
             ..Default::default()
         });
-        
-        let surface = unsafe { instance.create_surface_unsafe(wgpu::SurfaceTargetUnsafe::from_window(&*window).unwrap()) }.unwrap();
 
-        let adapter = instance.request_adapter(&wgpu::RequestAdapterOptions {
-            power_preference: wgpu::PowerPreference::default(),
-            compatible_surface: Some(&surface),
-            force_fallback_adapter: false,
-        }).await.unwrap();
+        let surface = unsafe {
+            instance
+                .create_surface_unsafe(wgpu::SurfaceTargetUnsafe::from_window(&*window).unwrap())
+        }
+        .unwrap();
 
-        let (device, queue) = adapter.request_device(
-            &wgpu::DeviceDescriptor {
-                required_features: wgpu::Features::empty(),
-                required_limits: wgpu::Limits::default(),
-                label: None,
-            },
-            None,
-        ).await.unwrap();
+        let adapter = instance
+            .request_adapter(&wgpu::RequestAdapterOptions {
+                power_preference: wgpu::PowerPreference::default(),
+                compatible_surface: Some(&surface),
+                force_fallback_adapter: false,
+            })
+            .await
+            .unwrap();
+
+        let (device, queue) = adapter
+            .request_device(
+                &wgpu::DeviceDescriptor {
+                    required_features: wgpu::Features::empty(),
+                    required_limits: wgpu::Limits::default(),
+                    label: None,
+                },
+                None,
+            )
+            .await
+            .unwrap();
 
         let surface_caps = surface.get_capabilities(&adapter);
-        let surface_format = surface_caps.formats.iter()
+        let surface_format = surface_caps
+            .formats
+            .iter()
             .copied()
             .find(|f| f.is_srgb())
             .unwrap_or(surface_caps.formats[0]);
-            
+
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format: surface_format,
@@ -119,11 +131,12 @@ impl WgpuPlatform {
         });
 
         // Pipeline for rectangles
-        let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: Some("Render Pipeline Layout"),
-            bind_group_layouts: &[],
-            push_constant_ranges: &[],
-        });
+        let render_pipeline_layout =
+            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                label: Some("Render Pipeline Layout"),
+                bind_group_layouts: &[],
+                push_constant_ranges: &[],
+            });
 
         let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("Render Pipeline"),
@@ -135,25 +148,43 @@ impl WgpuPlatform {
                     wgpu::VertexBufferLayout {
                         array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
                         step_mode: wgpu::VertexStepMode::Vertex,
-                        attributes: &[
-                            wgpu::VertexAttribute {
-                                offset: 0,
-                                shader_location: 0,
-                                format: wgpu::VertexFormat::Float32x3,
-                            }
-                        ],
+                        attributes: &[wgpu::VertexAttribute {
+                            offset: 0,
+                            shader_location: 0,
+                            format: wgpu::VertexFormat::Float32x3,
+                        }],
                     },
                     wgpu::VertexBufferLayout {
                         array_stride: std::mem::size_of::<InstanceRaw>() as wgpu::BufferAddress,
                         step_mode: wgpu::VertexStepMode::Instance,
                         attributes: &[
-                            wgpu::VertexAttribute { offset: 0, shader_location: 5, format: wgpu::VertexFormat::Float32x4 },
-                            wgpu::VertexAttribute { offset: 16, shader_location: 6, format: wgpu::VertexFormat::Float32x4 },
-                            wgpu::VertexAttribute { offset: 32, shader_location: 7, format: wgpu::VertexFormat::Float32x4 },
-                            wgpu::VertexAttribute { offset: 48, shader_location: 8, format: wgpu::VertexFormat::Float32x4 },
-                            wgpu::VertexAttribute { offset: 64, shader_location: 9, format: wgpu::VertexFormat::Float32x4 },
+                            wgpu::VertexAttribute {
+                                offset: 0,
+                                shader_location: 5,
+                                format: wgpu::VertexFormat::Float32x4,
+                            },
+                            wgpu::VertexAttribute {
+                                offset: 16,
+                                shader_location: 6,
+                                format: wgpu::VertexFormat::Float32x4,
+                            },
+                            wgpu::VertexAttribute {
+                                offset: 32,
+                                shader_location: 7,
+                                format: wgpu::VertexFormat::Float32x4,
+                            },
+                            wgpu::VertexAttribute {
+                                offset: 48,
+                                shader_location: 8,
+                                format: wgpu::VertexFormat::Float32x4,
+                            },
+                            wgpu::VertexAttribute {
+                                offset: 64,
+                                shader_location: 9,
+                                format: wgpu::VertexFormat::Float32x4,
+                            },
                         ],
-                    }
+                    },
                 ],
             },
             fragment: Some(wgpu::FragmentState {
@@ -185,12 +216,24 @@ impl WgpuPlatform {
 
         // Unit Quad
         let vertices = &[
-            Vertex { position: [0.0, 0.0, 0.0] },
-            Vertex { position: [1.0, 0.0, 0.0] },
-            Vertex { position: [1.0, 1.0, 0.0] },
-            Vertex { position: [0.0, 0.0, 0.0] },
-            Vertex { position: [1.0, 1.0, 0.0] },
-            Vertex { position: [0.0, 1.0, 0.0] },
+            Vertex {
+                position: [0.0, 0.0, 0.0],
+            },
+            Vertex {
+                position: [1.0, 0.0, 0.0],
+            },
+            Vertex {
+                position: [1.0, 1.0, 0.0],
+            },
+            Vertex {
+                position: [0.0, 0.0, 0.0],
+            },
+            Vertex {
+                position: [1.0, 1.0, 0.0],
+            },
+            Vertex {
+                position: [0.0, 1.0, 0.0],
+            },
         ];
 
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -205,11 +248,12 @@ impl WgpuPlatform {
             usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
         });
 
-        let polygon_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: Some("Polygon Pipeline Layout"),
-            bind_group_layouts: &[],
-            push_constant_ranges: &[],
-        });
+        let polygon_pipeline_layout =
+            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                label: Some("Polygon Pipeline Layout"),
+                bind_group_layouts: &[],
+                push_constant_ranges: &[],
+            });
 
         let polygon_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("Polygon Pipeline"),
@@ -217,16 +261,22 @@ impl WgpuPlatform {
             vertex: wgpu::VertexState {
                 module: &shader,
                 entry_point: "vs_polygon",
-                buffers: &[
-                    wgpu::VertexBufferLayout {
-                        array_stride: std::mem::size_of::<PolygonVertex>() as wgpu::BufferAddress,
-                        step_mode: wgpu::VertexStepMode::Vertex,
-                        attributes: &[
-                            wgpu::VertexAttribute { offset: 0, shader_location: 0, format: wgpu::VertexFormat::Float32x3 },
-                            wgpu::VertexAttribute { offset: 12, shader_location: 1, format: wgpu::VertexFormat::Float32x4 },
-                        ],
-                    }
-                ],
+                buffers: &[wgpu::VertexBufferLayout {
+                    array_stride: std::mem::size_of::<PolygonVertex>() as wgpu::BufferAddress,
+                    step_mode: wgpu::VertexStepMode::Vertex,
+                    attributes: &[
+                        wgpu::VertexAttribute {
+                            offset: 0,
+                            shader_location: 0,
+                            format: wgpu::VertexFormat::Float32x3,
+                        },
+                        wgpu::VertexAttribute {
+                            offset: 12,
+                            shader_location: 1,
+                            format: wgpu::VertexFormat::Float32x4,
+                        },
+                    ],
+                }],
             },
             fragment: Some(wgpu::FragmentState {
                 module: &shader,
@@ -262,9 +312,12 @@ impl WgpuPlatform {
         });
 
         // Text rendering setup
-        let mut font_system = FontSystem::new();
-        println!("RUGID WGPU: Found {} fonts in system", font_system.db().faces().count());
-        
+        let font_system = FontSystem::new();
+        println!(
+            "RUGID WGPU: Found {} fonts in system",
+            font_system.db().faces().count()
+        );
+
         let swash_cache = SwashCache::new();
         let mut text_atlas = TextAtlas::new(&device, &queue, surface_format);
         let text_renderer = TextRenderer::new(
@@ -297,7 +350,6 @@ impl WgpuPlatform {
         }
     }
 
-
     pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
         if new_size.width > 0 && new_size.height > 0 {
             self.size = new_size;
@@ -306,7 +358,6 @@ impl WgpuPlatform {
             self.surface.configure(&self.device, &self.config);
         }
     }
-    
 }
 
 impl Platform for WgpuPlatform {
@@ -317,36 +368,42 @@ impl Platform for WgpuPlatform {
     }
 
     fn handle_event(&mut self, event: &Event<()>) {
-        match event {
-            Event::WindowEvent { event, .. } => match event {
+        if let Event::WindowEvent { event, .. } = event {
+            match event {
                 WindowEvent::Resized(physical_size) => {
                     self.resize(*physical_size);
-                    self.events.push(PlatformEvent::Resize(physical_size.width as f32, physical_size.height as f32));
+                    self.events.push(PlatformEvent::Resize(
+                        physical_size.width as f32,
+                        physical_size.height as f32,
+                    ));
                 }
                 WindowEvent::CursorMoved { position, .. } => {
-                    self.events.push(PlatformEvent::Input(InputEvent::PointerMove(position.x as f32, position.y as f32)));
+                    self.events
+                        .push(PlatformEvent::Input(InputEvent::PointerMove(
+                            position.x as f32,
+                            position.y as f32,
+                        )));
                 }
-                WindowEvent::MouseInput { state, button, .. } => {
-                    if *button == MouseButton::Left {
-                        if *state == ElementState::Pressed {
-                            self.events.push(PlatformEvent::Input(InputEvent::PointerDown));
-                        } else {
-                            self.events.push(PlatformEvent::Input(InputEvent::PointerUp));
-                        }
+                WindowEvent::MouseInput { state, button, .. } if *button == MouseButton::Left => {
+                    if *state == ElementState::Pressed {
+                        self.events
+                            .push(PlatformEvent::Input(InputEvent::PointerDown));
+                    } else {
+                        self.events
+                            .push(PlatformEvent::Input(InputEvent::PointerUp));
                     }
                 }
                 _ => {}
-            },
-            _ => {}
+            }
         }
     }
 
     fn render(&mut self, svg: String) {
         // Parse rectangles
         self.instances.clear();
-        
+
         let rects = SimpleSvgParser::parse_rects(&svg);
-        
+
         for rect in rects {
             // Normalize using screen dimensions
             let screen_w = self.config.width as f32;
@@ -354,28 +411,28 @@ impl Platform for WgpuPlatform {
 
             let sx = (rect.w / screen_w) * 2.0;
             let sy = (rect.h / screen_h) * 2.0;
-            
+
             // Calculate center in NDC
             // Original x,y is top-left in pixels
             // Convert to NDC (-1 to 1)
             let left_ndc = (rect.x / screen_w) * 2.0 - 1.0;
             let top_ndc = 1.0 - (rect.y / screen_h) * 2.0; // Y is up in NDC
-            
+
             // Center of the rect in NDC
             let cx = left_ndc + sx / 2.0;
             let cy = top_ndc - sy / 2.0; // Subtract because Y is up
-            
+
             // Rotation
             let rad = rect.rotation.to_radians();
             let cos = rad.cos();
             let sin = rad.sin();
-            
+
             // Matrix construction
             let m00 = sx * cos;
             let m01 = sx * sin;
             let m10 = -sy * sin;
             let m11 = sy * cos;
-            
+
             let tx_final = cx - 0.5 * (m00 + m10);
             let ty_final = cy - 0.5 * (m01 + m11);
 
@@ -392,7 +449,7 @@ impl Platform for WgpuPlatform {
 
         // Parse text elements
         let text_elements = SimpleSvgParser::parse_texts(&svg);
-        
+
         // Prepare text buffers
         self.text_buffers.clear();
         for text_elem in text_elements {
@@ -400,10 +457,10 @@ impl Platform for WgpuPlatform {
             // The ontology resolver handles the relativistic scaling logic
             let pixel_size = text_elem.font_size;
             let pixel_height = pixel_size * 1.5; // Ensure enough vertical space
-            
+
             let mut buffer = Buffer::new(
-                &mut self.font_system, 
-                Metrics::new(pixel_size, pixel_size * 1.2)
+                &mut self.font_system,
+                Metrics::new(pixel_size, pixel_size * 1.2),
             );
             buffer.set_size(
                 &mut self.font_system,
@@ -421,59 +478,74 @@ impl Platform for WgpuPlatform {
         }
 
         // Update instance buffer
-        self.instance_buffer = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Instance Buffer"),
-            contents: bytemuck::cast_slice(&self.instances),
-            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
-        });
+        self.instance_buffer = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("Instance Buffer"),
+                contents: bytemuck::cast_slice(&self.instances),
+                usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+            });
 
         // Parse polygons
         let polygons = SimpleSvgParser::parse_polygons(&svg);
         self.polygon_vertices.clear();
-        
+
         let screen_w = self.config.width as f32;
         let screen_h = self.config.height as f32;
 
         for poly in polygons {
-            if poly.points.len() < 3 { continue; }
-            
+            if poly.points.len() < 3 {
+                continue;
+            }
+
             // Triangle fan tessellation
             let p0 = poly.points[0];
             let ndc0 = [
                 (p0.0 / screen_w) * 2.0 - 1.0,
                 1.0 - (p0.1 / screen_h) * 2.0,
-                0.0
+                0.0,
             ];
-            
-            for i in 1..poly.points.len()-1 {
+
+            for i in 1..poly.points.len() - 1 {
                 let p1 = poly.points[i];
-                let p2 = poly.points[i+1];
-                
+                let p2 = poly.points[i + 1];
+
                 let ndc1 = [
                     (p1.0 / screen_w) * 2.0 - 1.0,
                     1.0 - (p1.1 / screen_h) * 2.0,
-                    0.0
+                    0.0,
                 ];
-                
+
                 let ndc2 = [
                     (p2.0 / screen_w) * 2.0 - 1.0,
                     1.0 - (p2.1 / screen_h) * 2.0,
-                    0.0
+                    0.0,
                 ];
-                
-                self.polygon_vertices.push(PolygonVertex { position: ndc0, color: poly.fill });
-                self.polygon_vertices.push(PolygonVertex { position: ndc1, color: poly.fill });
-                self.polygon_vertices.push(PolygonVertex { position: ndc2, color: poly.fill });
+
+                self.polygon_vertices.push(PolygonVertex {
+                    position: ndc0,
+                    color: poly.fill,
+                });
+                self.polygon_vertices.push(PolygonVertex {
+                    position: ndc1,
+                    color: poly.fill,
+                });
+                self.polygon_vertices.push(PolygonVertex {
+                    position: ndc2,
+                    color: poly.fill,
+                });
             }
         }
 
         // Update polygon buffer
         if !self.polygon_vertices.is_empty() {
-            self.polygon_buffer = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some("Polygon Buffer"),
-                contents: bytemuck::cast_slice(&self.polygon_vertices),
-                usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
-            });
+            self.polygon_buffer =
+                self.device
+                    .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                        label: Some("Polygon Buffer"),
+                        contents: bytemuck::cast_slice(&self.polygon_vertices),
+                        usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+                    });
         }
 
         // Get current texture
@@ -481,10 +553,14 @@ impl Platform for WgpuPlatform {
             Ok(t) => t,
             Err(_) => return,
         };
-        let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
-        let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            label: Some("Render Encoder"),
-        });
+        let view = output
+            .texture
+            .create_view(&wgpu::TextureViewDescriptor::default());
+        let mut encoder = self
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                label: Some("Render Encoder"),
+            });
 
         // Draw geometry (Polygons + Rects)
         {
@@ -494,7 +570,12 @@ impl Platform for WgpuPlatform {
                     view: &view,
                     resolve_target: None,
                     ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color { r: 0.1, g: 0.1, b: 0.1, a: 1.0 }),
+                        load: wgpu::LoadOp::Clear(wgpu::Color {
+                            r: 0.1,
+                            g: 0.1,
+                            b: 0.1,
+                            a: 1.0,
+                        }),
                         store: wgpu::StoreOp::Store,
                     },
                 })],
@@ -518,41 +599,45 @@ impl Platform for WgpuPlatform {
         }
 
         // Prepare text areas for rendering
-        let text_areas: Vec<TextArea> = self.text_buffers.iter().map(|(buffer, elem)| {
-            // Measure text width to adjust alignment
-            let mut width = 0.0f32;
-            for run in buffer.layout_runs() {
-                width = width.max(run.line_w);
-            }
-            
-            let mut left = elem.x * self.size.width as f32 / 100.0;
-            
-            // Adjust based on text-anchor
-            if elem.align == "middle" {
-                left -= width / 2.0;
-            } else if elem.align == "end" {
-                left -= width;
-            }
-            
-            TextArea {
-                buffer,
-                left,
-                top: elem.y * self.size.height as f32 / 100.0,
-                scale: 1.0,
-                bounds: TextBounds {
-                    left: 0,
-                    top: 0,
-                    right: self.size.width as i32,
-                    bottom: self.size.height as i32,
-                },
-                default_color: Color::rgba(
-                    (elem.color[0] * 255.0) as u8,
-                    (elem.color[1] * 255.0) as u8,
-                    (elem.color[2] * 255.0) as u8,
-                    255,
-                ),
-            }
-        }).collect();
+        let text_areas: Vec<TextArea> = self
+            .text_buffers
+            .iter()
+            .map(|(buffer, elem)| {
+                // Measure text width to adjust alignment
+                let mut width = 0.0f32;
+                for run in buffer.layout_runs() {
+                    width = width.max(run.line_w);
+                }
+
+                let mut left = elem.x * self.size.width as f32 / 100.0;
+
+                // Adjust based on text-anchor
+                if elem.align == "middle" {
+                    left -= width / 2.0;
+                } else if elem.align == "end" {
+                    left -= width;
+                }
+
+                TextArea {
+                    buffer,
+                    left,
+                    top: elem.y * self.size.height as f32 / 100.0,
+                    scale: 1.0,
+                    bounds: TextBounds {
+                        left: 0,
+                        top: 0,
+                        right: self.size.width as i32,
+                        bottom: self.size.height as i32,
+                    },
+                    default_color: Color::rgba(
+                        (elem.color[0] * 255.0) as u8,
+                        (elem.color[1] * 255.0) as u8,
+                        (elem.color[2] * 255.0) as u8,
+                        255,
+                    ),
+                }
+            })
+            .collect();
 
         // Render text
         if !text_areas.is_empty() {
@@ -585,19 +670,24 @@ impl Platform for WgpuPlatform {
                     timestamp_writes: None,
                 });
 
-                let _ = self.text_renderer.render(&self.text_atlas, &mut render_pass);
+                let _ = self
+                    .text_renderer
+                    .render(&self.text_atlas, &mut render_pass);
             }
         }
 
         self.queue.submit(std::iter::once(encoder.finish()));
         output.present();
-        
+
         self.window.request_redraw();
     }
 }
 
 struct SvgRect {
-    x: f32, y: f32, w: f32, h: f32,
+    x: f32,
+    y: f32,
+    w: f32,
+    h: f32,
     fill: [f32; 4],
     rotation: f32,
 }
@@ -619,24 +709,24 @@ impl SimpleSvgParser {
             remaining = &remaining[start..];
             let end = remaining.find("/>").unwrap_or(remaining.len());
             let tag = &remaining[..end];
-            
+
             let fill = Self::extract_fill(tag).unwrap_or([0.5, 0.5, 0.5, 1.0]);
-            
+
             if let Some(points_str) = Self::extract_string_attr(tag, "points") {
                 let mut points = Vec::new();
                 for pair in points_str.split_whitespace() {
                     let coords: Vec<&str> = pair.split(',').collect();
-                    if coords.len() == 2 {
-                        if let (Ok(x), Ok(y)) = (coords[0].parse::<f32>(), coords[1].parse::<f32>()) {
-                            points.push((x, y));
-                        }
+                    if coords.len() == 2
+                        && let (Ok(x), Ok(y)) = (coords[0].parse::<f32>(), coords[1].parse::<f32>())
+                    {
+                        points.push((x, y));
                     }
                 }
                 if !points.is_empty() {
                     polygons.push(SvgPolygon { points, fill });
                 }
             }
-            
+
             remaining = &remaining[end..];
         }
         polygons
@@ -666,7 +756,7 @@ impl SimpleSvgParser {
 
     fn extract_fill(tag: &str) -> Option<[f32; 4]> {
         let mut alpha = 1.0;
-        
+
         // Check for fill-opacity
         if let Some(val) = Self::extract_attr(tag, "fill-opacity") {
             alpha = val;
@@ -682,11 +772,11 @@ impl SimpleSvgParser {
                     let g: f32 = parts[1].trim().parse().unwrap_or(0.0);
                     let b: f32 = parts[2].trim().parse().unwrap_or(0.0);
                     let a: f32 = parts[3].trim().parse().unwrap_or(1.0);
-                    return Some([r/255.0, g/255.0, b/255.0, a * alpha]);
+                    return Some([r / 255.0, g / 255.0, b / 255.0, a * alpha]);
                 }
             }
         }
-        
+
         // fill="rgb(r,g,b)"
         if let Some(start) = tag.find("fill=\"rgb(") {
             let rest = &tag[start + 10..];
@@ -696,11 +786,11 @@ impl SimpleSvgParser {
                     let r: f32 = parts[0].trim().parse().unwrap_or(0.0);
                     let g: f32 = parts[1].trim().parse().unwrap_or(0.0);
                     let b: f32 = parts[2].trim().parse().unwrap_or(0.0);
-                    return Some([r/255.0, g/255.0, b/255.0, alpha]);
+                    return Some([r / 255.0, g / 255.0, b / 255.0, alpha]);
                 }
             }
         }
-        
+
         // fill="#RRGGBB"
         if let Some(start) = tag.find("fill=\"#") {
             let rest = &tag[start + 7..];
@@ -738,15 +828,22 @@ impl SimpleSvgParser {
             remaining = &remaining[start..];
             let end = remaining.find("/>").unwrap_or(remaining.len());
             let tag = &remaining[..end];
-            
+
             let x = Self::extract_attr(tag, "x").unwrap_or(0.0);
             let y = Self::extract_attr(tag, "y").unwrap_or(0.0);
             let w = Self::extract_attr(tag, "width").unwrap_or(0.0);
             let h = Self::extract_attr(tag, "height").unwrap_or(0.0);
             let fill = Self::extract_fill(tag).unwrap_or([0.5, 0.5, 0.5, 1.0]);
             let rotation = Self::extract_rotation(tag);
-            
-            rects.push(SvgRect { x, y, w, h, fill, rotation });
+
+            rects.push(SvgRect {
+                x,
+                y,
+                w,
+                h,
+                fill,
+                rotation,
+            });
             remaining = &remaining[end..];
         }
         rects
@@ -755,25 +852,26 @@ impl SimpleSvgParser {
     fn parse_texts(svg: &str) -> Vec<TextElement> {
         let mut texts = Vec::new();
         let mut remaining = svg;
-        
+
         while let Some(start) = remaining.find("<text") {
             remaining = &remaining[start..];
             let tag_end = remaining.find(">").unwrap_or(remaining.len());
             let content_end = remaining.find("</text>").unwrap_or(remaining.len());
-            
+
             let tag = &remaining[..tag_end];
             let content = if content_end > tag_end {
                 &remaining[tag_end + 1..content_end]
             } else {
                 ""
             };
-            
+
             let x = Self::extract_attr(tag, "x").unwrap_or(0.0);
             let y = Self::extract_attr(tag, "y").unwrap_or(0.0);
             let font_size = Self::extract_attr(tag, "font-size").unwrap_or(16.0);
             let color = Self::extract_fill(tag).unwrap_or([1.0, 1.0, 1.0, 1.0]);
-            let align = Self::extract_string_attr(tag, "text-anchor").unwrap_or("start".to_string());
-            
+            let align =
+                Self::extract_string_attr(tag, "text-anchor").unwrap_or("start".to_string());
+
             if !content.is_empty() {
                 texts.push(TextElement {
                     content: content.to_string(),
@@ -786,10 +884,10 @@ impl SimpleSvgParser {
                     align,
                 });
             }
-            
+
             remaining = &remaining[content_end.min(remaining.len())..];
         }
-        
+
         texts
     }
 }

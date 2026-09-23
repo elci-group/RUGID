@@ -36,7 +36,7 @@ impl RdfNode {
             indent,
         }
     }
-    
+
     /// Get a required string attribute
     pub fn get_str(&self, key: &str) -> Option<&str> {
         self.attributes.get(key).and_then(|v| {
@@ -47,7 +47,7 @@ impl RdfNode {
             }
         })
     }
-    
+
     /// Get a required float attribute
     pub fn get_float(&self, key: &str) -> Option<f32> {
         self.attributes.get(key).and_then(|v| {
@@ -58,7 +58,7 @@ impl RdfNode {
             }
         })
     }
-    
+
     /// Get a point (x, y) attribute
     pub fn get_point(&self, key: &str) -> Option<(f32, f32)> {
         self.attributes.get(key).and_then(|v| {
@@ -69,7 +69,7 @@ impl RdfNode {
             }
         })
     }
-    
+
     /// Get a 3D point attribute
     pub fn get_point3d(&self, key: &str) -> Option<(f32, f32, f32)> {
         self.attributes.get(key).and_then(|v| {
@@ -80,14 +80,14 @@ impl RdfNode {
             }
         })
     }
-    
+
     /// Check if this node has an animation
     pub fn has_animation(&self) -> bool {
-        self.attributes.contains_key("move") ||
-        self.attributes.contains_key("rotatex") ||
-        self.attributes.contains_key("rotatey") ||
-        self.attributes.contains_key("rotatez") ||
-        self.attributes.contains_key("fade")
+        self.attributes.contains_key("move")
+            || self.attributes.contains_key("rotatex")
+            || self.attributes.contains_key("rotatey")
+            || self.attributes.contains_key("rotatez")
+            || self.attributes.contains_key("fade")
     }
 }
 
@@ -101,15 +101,17 @@ pub enum ElementClass {
     Shape3D,
 }
 
-impl ElementClass {
-    pub fn from_str(s: &str) -> Option<Self> {
+impl std::str::FromStr for ElementClass {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
-            "window" => Some(Self::Window),
-            "pane" => Some(Self::Pane),
-            "widget" => Some(Self::Widget),
-            "text" => Some(Self::Text),
-            "shape3d" => Some(Self::Shape3D),
-            _ => None,
+            "window" => Ok(Self::Window),
+            "pane" => Ok(Self::Pane),
+            "widget" => Ok(Self::Widget),
+            "text" => Ok(Self::Text),
+            "shape3d" => Ok(Self::Shape3D),
+            _ => Err(()),
         }
     }
 }

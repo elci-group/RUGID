@@ -23,15 +23,27 @@ impl Default for Material {
 
 impl Material {
     pub fn rubber() -> Self {
-        Self { restitution: 0.8, friction: 0.9, surface_tension: 0.1 }
+        Self {
+            restitution: 0.8,
+            friction: 0.9,
+            surface_tension: 0.1,
+        }
     }
-    
+
     pub fn metal() -> Self {
-        Self { restitution: 0.2, friction: 0.4, surface_tension: 0.0 }
+        Self {
+            restitution: 0.2,
+            friction: 0.4,
+            surface_tension: 0.0,
+        }
     }
-    
+
     pub fn sticky() -> Self {
-        Self { restitution: 0.0, friction: 1.0, surface_tension: 2.0 }
+        Self {
+            restitution: 0.0,
+            friction: 1.0,
+            surface_tension: 2.0,
+        }
     }
 }
 
@@ -75,12 +87,12 @@ impl PhysicsState {
             is_static: mass <= 0.0,
         }
     }
-    
+
     pub fn with_material(mut self, material: Material) -> Self {
         self.material = material;
         self
     }
-    
+
     pub fn with_magnetism(mut self, strength: f32, axis: Point3D) -> Self {
         self.magnetic_properties = Some(MagneticDipole {
             strength,
@@ -88,7 +100,7 @@ impl PhysicsState {
         });
         self
     }
-    
+
     /// Apply a force (F = ma -> a += F/m)
     pub fn apply_force(&mut self, force: Point3D) {
         if !self.is_static && self.mass > 0.0 {

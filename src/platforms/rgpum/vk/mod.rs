@@ -2,14 +2,14 @@
 
 #![allow(dead_code)]
 
-pub mod ffi;      // Raw FFI definitions
-pub mod types;    // High-level types
-pub mod instance; // Instance management
-pub mod device;   // Device stubs
-pub mod swapchain;
 pub mod commands;
-pub mod sync;
+pub mod device; // Device stubs
+pub mod ffi; // Raw FFI definitions
+pub mod instance; // Instance management
 pub mod memory;
+pub mod swapchain;
+pub mod sync;
+pub mod types; // High-level types
 
 pub use instance::Instance;
 pub use types::*;

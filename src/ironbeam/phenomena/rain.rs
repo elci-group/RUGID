@@ -1,9 +1,9 @@
 //! IronBeam Rain System
-//! 
+//!
 //! Simulates precipitation and droplet dynamics.
 
-use crate::geometry3d::Point3D;
 use crate::cad::BoundingBox;
+use crate::geometry3d::Point3D;
 use crate::ironbeam::phenomena::wind::WindSystem;
 
 #[derive(Clone, Debug)]
@@ -23,16 +23,16 @@ pub struct RainDrop {
 pub struct RainSystem {
     /// Rain intensity (mm/hour)
     pub intensity: f32,
-    
+
     /// Drop size distribution
     pub drop_size: DropSizeDistribution,
-    
+
     /// Wind influence
     pub wind_influence: f32,
-    
+
     /// Active raindrops (for visualization)
     pub drops: Vec<RainDrop>,
-    
+
     /// Spawn bounds
     pub bounds: BoundingBox,
 }
@@ -59,7 +59,7 @@ impl RainSystem {
         let x = self.bounds.min.x + (self.bounds.max.x - self.bounds.min.x) * 0.5; // TODO: Random
         let z = self.bounds.min.z + (self.bounds.max.z - self.bounds.min.z) * 0.5; // TODO: Random
         let y = self.bounds.max.y;
-        
+
         let radius = match self.drop_size {
             DropSizeDistribution::Uniform(r) => r,
             _ => 0.002,
@@ -77,31 +77,32 @@ impl RainSystem {
         // Spawn new drops
         let drops_per_second = self.intensity * 10.0; // Simplified spawn rate
         let spawn_count = (drops_per_second * dt).ceil() as usize;
-        
+
         for _ in 0..spawn_count {
             self.spawn_drop(wind, time);
         }
-        
+
         // Update existing drops
         for drop in &mut self.drops {
             // Terminal velocity based on size
             let terminal_velocity = Self::calculate_terminal_velocity(drop.radius);
-            
+
             // Wind influence
             let wind_force = wind.sample(drop.position, time) * self.wind_influence;
-            
+
             drop.velocity.y = terminal_velocity;
             drop.velocity.x += wind_force.x * dt;
             drop.velocity.z += wind_force.z * dt;
-            
+
             drop.position += drop.velocity * dt;
             drop.lifetime -= dt;
         }
-        
+
         // Remove dead drops
-        self.drops.retain(|d| d.lifetime > 0.0 && d.position.y > self.bounds.min.y);
+        self.drops
+            .retain(|d| d.lifetime > 0.0 && d.position.y > self.bounds.min.y);
     }
-    
+
     pub fn render(&self) -> String {
         let mut svg = String::new();
         for drop in &self.drops {
@@ -109,7 +110,8 @@ impl RainSystem {
             // Simplified for MVP
             svg.push_str(&format!(
                 r#"<circle cx="{}" cy="{}" r="{}" fill="rgba(100,150,255,0.6)" />"#,
-                drop.position.x, drop.position.y,
+                drop.position.x,
+                drop.position.y,
                 drop.radius * 1000.0 // Scale for visibility
             ));
         }

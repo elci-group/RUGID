@@ -7,37 +7,37 @@
 //! - Relativity (SR & GR effects)
 //! - Spacetime curvature visualization
 
-pub mod core;
-pub mod system;
-pub mod fluid;
-pub mod tessellator;
-pub mod reflector;
-pub mod shadows;
-pub mod atmosphere;
 pub mod aero;
-pub mod wind;
+pub mod atmosphere;
 pub mod collision;
-pub mod radiosity;
-pub mod thermodynamics;
-pub mod relativity;
-pub mod spacetime;
+pub mod core;
+pub mod fluid;
 pub mod light;
 pub mod optics;
+pub mod radiosity;
+pub mod reflector;
+pub mod relativity;
+pub mod shadows;
+pub mod spacetime;
+pub mod system;
+pub mod tessellator;
+pub mod thermodynamics;
+pub mod wind;
 
 // Re-export commonly used types
-pub use core::{PhysicsState, Material, MagneticDipole};
-pub use system::PhysicsSystem;
-pub use fluid::{FluidSystem, FluidParticle, FluidDomain};
-pub use thermodynamics::{Thermodynamics, ThermodynamicsSystem, PhaseState, HeatSource};
-pub use relativity::{RelativisticState, RelativitySystem, RelativityHelpers, SPEED_OF_LIGHT};
-pub use spacetime::{SpacetimeSystem, SpacetimeNode, SpacetimeConfig, MassiveBody};
+pub use aero::{AeroBody, DragCoefficient, calculate_drag, calculate_lift};
+pub use atmosphere::Atmosphere;
+pub use collision::{Collider, CollisionEvent, check_continuous_collision};
+pub use core::{MagneticDipole, Material, PhysicsState};
+pub use fluid::{FluidDomain, FluidParticle, FluidSystem};
 pub use light::{LightSource, OpticalMaterial, Ray};
 pub use optics::{Scene, calculate_lighting, compute_face_gradient};
-pub use tessellator::{Tessellator, TessellationConfig, TessellatedTriangle};
-pub use reflector::{Reflector, Clipper};
+pub use radiosity::{FormFactorEngine, Patch, RadiositySolver};
+pub use reflector::{Clipper, Reflector};
+pub use relativity::{RelativisticState, RelativityHelpers, RelativitySystem, SPEED_OF_LIGHT};
 pub use shadows::ShadowEngine;
-pub use atmosphere::Atmosphere;
-pub use aero::{AeroBody, DragCoefficient, calculate_drag, calculate_lift};
-pub use wind::{WindSystem, WindConfig};
-pub use collision::{Collider, CollisionEvent, check_continuous_collision};
-pub use radiosity::{Patch, FormFactorEngine, RadiositySolver};
+pub use spacetime::{MassiveBody, SpacetimeConfig, SpacetimeNode, SpacetimeSystem};
+pub use system::PhysicsSystem;
+pub use tessellator::{TessellatedTriangle, TessellationConfig, Tessellator};
+pub use thermodynamics::{HeatSource, PhaseState, Thermodynamics, ThermodynamicsSystem};
+pub use wind::{WindConfig, WindSystem};

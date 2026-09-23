@@ -77,7 +77,7 @@ mod tests {
         // y = P * height = 0.1 * 200 = 20
         // w = S_ext * width = 0.3 * 100 = 30
         // h = P_ext * height = 0.5 * 200 = 100
-        
+
         assert!((rect.x - 20.0).abs() < 1e-5);
         assert!((rect.y - 20.0).abs() < 1e-5);
         assert!((rect.width - 30.0).abs() < 1e-5);

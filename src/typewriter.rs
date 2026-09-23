@@ -18,25 +18,28 @@ impl TypewriterEffect {
             current_position: 0,
         }
     }
-    
+
     /// Get the visible portion of the text based on progress (0.0 - 1.0)
     pub fn get_visible_text(&self, progress: f32) -> String {
         let progress = progress.clamp(0.0, 1.0);
         let visible_chars = (self.target_text.len() as f32 * progress).floor() as usize;
         self.target_text.chars().take(visible_chars).collect()
     }
-    
+
     /// Advance by one character, returns current visible text
     pub fn tick(&mut self) -> String {
         self.current_position = (self.current_position + 1).min(self.target_text.len());
-        self.target_text.chars().take(self.current_position).collect()
+        self.target_text
+            .chars()
+            .take(self.current_position)
+            .collect()
     }
-    
+
     /// Check if typewriter effect is complete
     pub fn is_complete(&self) -> bool {
         self.current_position >= self.target_text.len()
     }
-    
+
     /// Reset to beginning
     pub fn reset(&mut self) {
         self.current_position = 0;
@@ -46,7 +49,7 @@ impl TypewriterEffect {
 /// Cross-fade between two text strings
 pub fn cross_fade_text(from: &str, to: &str, progress: f32) -> String {
     let progress = progress.clamp(0.0, 1.0);
-    
+
     // Simple approach: switch at midpoint
     if progress < 0.5 {
         from.to_string()
@@ -59,13 +62,13 @@ pub fn cross_fade_text(from: &str, to: &str, progress: f32) -> String {
 pub fn scramble_text(from: &str, to: &str, progress: f32, seed: u64) -> String {
     let progress = progress.clamp(0.0, 1.0);
     let max_len = from.len().max(to.len());
-    
+
     // Simple deterministic "randomness" based on seed
     let mut result = String::new();
-    
+
     for i in 0..max_len {
         let char_progress = (i as f32 / max_len as f32 - progress).abs();
-        
+
         if char_progress < 0.1 {
             // In transition zone: show scrambled character
             let scrambled = ((seed as usize + i) % 26 + 65) as u8 as char;
@@ -82,7 +85,7 @@ pub fn scramble_text(from: &str, to: &str, progress: f32, seed: u64) -> String {
             }
         }
     }
-    
+
     result
 }
 
@@ -152,10 +155,10 @@ mod tests {
     fn test_morph_text_modes() {
         let result = morph_text_content("Old", "New", 0.5, TextMorphMode::Typewriter, None);
         assert_eq!(result, "N"); // 50% of "New" = 1 char
-        
+
         let result = morph_text_content("Old", "New", 0.3, TextMorphMode::CrossFade, None);
         assert_eq!(result, "Old");
-        
+
         let result = morph_text_content("Old", "New", 0.7, TextMorphMode::CrossFade, None);
         assert_eq!(result, "New");
     }

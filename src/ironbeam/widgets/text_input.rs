@@ -16,7 +16,7 @@ impl TextInput {
             placeholder: String::new(),
         }
     }
-    
+
     pub fn render(&self) -> String {
         format!(
             r##"<rect width="200" height="30" fill="#252526" stroke="#454545" rx="4" />

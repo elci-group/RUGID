@@ -16,9 +16,13 @@ impl Dropdown {
             selected_index: 0,
         }
     }
-    
+
     pub fn render(&self) -> String {
-        let text = self.options.get(self.selected_index).map(|s| s.as_str()).unwrap_or("");
+        let text = self
+            .options
+            .get(self.selected_index)
+            .map(|s| s.as_str())
+            .unwrap_or("");
         format!(
             r##"<rect width="150" height="30" fill="#252526" stroke="#454545" rx="4" />
                <text x="10" y="20" fill="#cccccc">{}</text>

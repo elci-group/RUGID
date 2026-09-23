@@ -1,12 +1,11 @@
+use sha2::{Digest, Sha256};
 /// Content-Addressable Asset Registry
 ///
 /// Implements "The Vault" - a novel asset management system where assets
 /// are identified by their content hash (SHA-256) rather than file paths.
-
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
-use sha2::{Sha256, Digest};
 
 use crate::rdf::RdfDocument;
 
@@ -26,13 +25,14 @@ impl AssetHash {
     }
 
     /// Compute hash from string content
-    pub fn from_str(content: &str) -> Self {
+    pub fn from_text(content: &str) -> Self {
         Self::from_bytes(content.as_bytes())
     }
 
     /// Get hash as hex string
     pub fn to_hex(&self) -> String {
-        self.0.iter()
+        self.0
+            .iter()
             .map(|b| format!("{:02x}", b))
             .collect::<String>()
     }
@@ -40,7 +40,9 @@ impl AssetHash {
     /// Parse from hex string
     pub fn from_hex(hex: &str) -> Result<Self, AssetError> {
         if hex.len() != 64 {
-            return Err(AssetError::InvalidHash("Hash must be 64 hex characters".into()));
+            return Err(AssetError::InvalidHash(
+                "Hash must be 64 hex characters".into(),
+            ));
         }
 
         let mut hash = [0u8; 32];
@@ -79,11 +81,9 @@ impl Asset {
                 // Hash the serialized RDF
                 // For now, we'll use a simplified approach
                 // In production, we'd serialize the entire document
-                AssetHash::from_str(&format!("{:?}", doc))
+                AssetHash::from_text(&format!("{:?}", doc))
             }
-            Asset::Svg(content) | Asset::Text(content) => {
-                AssetHash::from_str(content)
-            }
+            Asset::Svg(content) | Asset::Text(content) => AssetHash::from_text(content),
         }
     }
 }
@@ -160,8 +160,7 @@ impl AssetRegistry {
 
     /// Get an asset by its path (if indexed)
     pub fn get_by_path(&self, path: &PathBuf) -> Option<Arc<Asset>> {
-        self.path_index.get(path)
-            .and_then(|hash| self.get(hash))
+        self.path_index.get(path).and_then(|hash| self.get(hash))
     }
 
     /// Get the hash associated with a path
@@ -191,9 +190,7 @@ impl AssetRegistry {
 
         // Update reverse dependencies
         for dep in deps {
-            self.dependents.entry(dep)
-                .or_insert_with(Vec::new)
-                .push(asset);
+            self.dependents.entry(dep).or_default().push(asset);
         }
     }
 
@@ -254,9 +251,9 @@ mod tests {
 
     #[test]
     fn test_asset_hash() {
-        let hash1 = AssetHash::from_str("Hello, World!");
-        let hash2 = AssetHash::from_str("Hello, World!");
-        let hash3 = AssetHash::from_str("Different content");
+        let hash1 = AssetHash::from_text("Hello, World!");
+        let hash2 = AssetHash::from_text("Hello, World!");
+        let hash3 = AssetHash::from_text("Different content");
 
         assert_eq!(hash1, hash2);
         assert_ne!(hash1, hash3);
@@ -264,7 +261,7 @@ mod tests {
 
     #[test]
     fn test_hash_hex_conversion() {
-        let hash = AssetHash::from_str("test");
+        let hash = AssetHash::from_text("test");
         let hex = hash.to_hex();
         let parsed = AssetHash::from_hex(&hex).unwrap();
 

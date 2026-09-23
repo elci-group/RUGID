@@ -2,28 +2,28 @@
 
 use rugid::cad::CADMesh;
 use rugid::cad::converter::CADRenderer;
-use rugid::geometry3d::{Point3D, Rotation3D};
 use rugid::cell::CellId;
+use rugid::geometry3d::{Point3D, Rotation3D};
 use std::f32::consts::PI;
 
 fn main() {
     println!("🎨 Generating Complex CAD Render...");
-    
+
     // Generate torus
     let mesh = generate_torus(1.0, 0.4, 48, 24);
     println!("{}", mesh.stats());
-    
+
     // Create renderer
     let mut cad_renderer = CADRenderer::new();
     let shape_id = CellId::next();
     cad_renderer.register_colored(shape_id, &mesh, (180, 120, 60)); // Bronze
-    
+
     // Render at a nice angle
     let rotation = Rotation3D::new(25.0, 45.0, 10.0);
     let shape_svg = cad_renderer
         .render(shape_id, rotation, 400.0, 300.0, 280.0)
         .unwrap_or_default();
-    
+
     // Build full SVG
     let svg = format!(
         r##"<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
@@ -53,39 +53,44 @@ fn main() {
         mesh.triangles.len(),
         shape_svg
     );
-    
+
     // Save to file
     let output_path = "/home/adminx/RUGID/cad_render_output.svg";
     std::fs::write(output_path, &svg).expect("Failed to write SVG");
-    
+
     println!("✅ Saved to: {}", output_path);
     println!("📐 SVG size: {} bytes", svg.len());
 }
 
-fn generate_torus(major_radius: f32, minor_radius: f32, major_segments: usize, minor_segments: usize) -> CADMesh {
+fn generate_torus(
+    major_radius: f32,
+    minor_radius: f32,
+    major_segments: usize,
+    minor_segments: usize,
+) -> CADMesh {
     let mut mesh = CADMesh::new("torus");
-    
+
     for i in 0..major_segments {
         let theta1 = 2.0 * PI * i as f32 / major_segments as f32;
         let theta2 = 2.0 * PI * (i + 1) as f32 / major_segments as f32;
-        
+
         for j in 0..minor_segments {
             let phi1 = 2.0 * PI * j as f32 / minor_segments as f32;
             let phi2 = 2.0 * PI * (j + 1) as f32 / minor_segments as f32;
-            
+
             let v1 = torus_point(major_radius, minor_radius, theta1, phi1);
             let v2 = torus_point(major_radius, minor_radius, theta2, phi1);
             let v3 = torus_point(major_radius, minor_radius, theta1, phi2);
             let v4 = torus_point(major_radius, minor_radius, theta2, phi2);
-            
+
             let n1 = torus_normal(theta1, phi1);
             let n2 = torus_normal(theta2, phi2);
-            
+
             mesh.add_triangle(v1, v2, v3, n1);
             mesh.add_triangle(v2, v4, v3, n2);
         }
     }
-    
+
     mesh.normalize();
     mesh
 }
@@ -99,9 +104,5 @@ fn torus_point(major_r: f32, minor_r: f32, theta: f32, phi: f32) -> Point3D {
 }
 
 fn torus_normal(theta: f32, phi: f32) -> Point3D {
-    Point3D::new(
-        phi.cos() * theta.cos(),
-        phi.sin(),
-        phi.cos() * theta.sin(),
-    ).normalize()
+    Point3D::new(phi.cos() * theta.cos(), phi.sin(), phi.cos() * theta.sin()).normalize()
 }

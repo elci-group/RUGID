@@ -1,6 +1,5 @@
-use crate::geometry3d::{Point3D, Rotation3D, rotate_3d};
-use crate::physics::light::{Ray, LightSource, LightSourceType, OpticalMaterial, HitRecord};
-use std::f32::consts::PI;
+use crate::geometry3d::Point3D;
+use crate::physics::light::{HitRecord, LightSource, LightSourceType, OpticalMaterial, Ray};
 
 /// Represents a renderable face in the scene for ray tracing
 #[derive(Clone, Debug)]
@@ -37,6 +36,12 @@ pub struct FaceGradient {
     pub radial: bool,
     pub center: (f32, f32),
     pub radius: f32,
+}
+
+impl Default for Scene {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Scene {
@@ -81,12 +86,15 @@ pub fn calculate_lighting(
                 // Simple linear attenuation - Reduced falloff for better visibility
                 let att = 1.0 / (1.0 + 0.0001 * dist + 0.000001 * dist * dist);
                 (d_vec.normalize(), dist, att)
-            },
+            }
             LightSourceType::Directional => {
                 // Light position is direction vector pointing TO light
                 (light.position.normalize(), f32::INFINITY, 1.0)
-            },
-            LightSourceType::Spot { cutoff_angle, direction } => {
+            }
+            LightSourceType::Spot {
+                cutoff_angle,
+                direction,
+            } => {
                 let d_vec = Point3D::new(
                     light.position.x - point.x,
                     light.position.y - point.y,
@@ -94,13 +102,13 @@ pub fn calculate_lighting(
                 );
                 let dist = d_vec.magnitude();
                 let l_dir = d_vec.normalize();
-                
+
                 // Check angle
                 let spot_dir = direction.normalize();
                 // Dot product of light direction (from source) and vector to point
                 // Vector from source to point is -l_dir
                 let angle_cos = spot_dir.dot(&Point3D::new(-l_dir.x, -l_dir.y, -l_dir.z));
-                
+
                 if angle_cos > cutoff_angle.to_radians().cos() {
                     let att = 1.0 / (1.0 + 0.0001 * dist);
                     (l_dir, dist, att)
@@ -110,34 +118,50 @@ pub fn calculate_lighting(
             }
         };
 
-        if attenuation <= 0.001 { continue; }
+        if attenuation <= 0.001 {
+            continue;
+        }
 
         // Shadow check
         let shadow_ray = Ray::new(
-            Point3D::new(point.x + normal.x * 0.1, point.y + normal.y * 0.1, point.z + normal.z * 0.1),
-            light_dir
+            Point3D::new(
+                point.x + normal.x * 0.1,
+                point.y + normal.y * 0.1,
+                point.z + normal.z * 0.1,
+            ),
+            light_dir,
         );
-        
+
         let mut in_shadow = false;
         for face in &scene.faces {
-            if let Some(hit) = intersect_triangle(&shadow_ray, face.vertices[0], face.vertices[1], face.vertices[2]) {
-                if hit.t < distance {
-                    in_shadow = true;
-                    break;
-                }
+            if let Some(hit) = intersect_triangle(
+                &shadow_ray,
+                face.vertices[0],
+                face.vertices[1],
+                face.vertices[2],
+            ) && hit.t < distance
+            {
+                in_shadow = true;
+                break;
             }
             // For quads, check second triangle
-            if face.vertices.len() == 4 {
-                if let Some(hit) = intersect_triangle(&shadow_ray, face.vertices[0], face.vertices[2], face.vertices[3]) {
-                    if hit.t < distance {
-                        in_shadow = true;
-                        break;
-                    }
-                }
+            if face.vertices.len() == 4
+                && let Some(hit) = intersect_triangle(
+                    &shadow_ray,
+                    face.vertices[0],
+                    face.vertices[2],
+                    face.vertices[3],
+                )
+                && hit.t < distance
+            {
+                in_shadow = true;
+                break;
             }
         }
 
-        if in_shadow { continue; }
+        if in_shadow {
+            continue;
+        }
 
         // Diffuse (Lambertian)
         let diff = normal.dot(&light_dir).max(0.0);
@@ -148,9 +172,11 @@ pub fn calculate_lighting(
             light_dir.x + view_dir.x,
             light_dir.y + view_dir.y,
             light_dir.z + view_dir.z,
-        ).normalize();
+        )
+        .normalize();
         let spec_angle = normal.dot(&half_dir).max(0.0);
-        let specular_strength = spec_angle.powf(material.shininess) * material.specular * light.intensity * attenuation;
+        let specular_strength =
+            spec_angle.powf(material.shininess) * material.specular * light.intensity * attenuation;
 
         // Add contributions
         total_r += diffuse_strength * material.color.0 as f32 + specular_strength * 255.0;
@@ -170,22 +196,15 @@ pub fn calculate_lighting(
 
 /// The "Novel" Gradient-Space Ray Tracing method
 /// Instead of rasterizing, we sample lighting at vertices and fit an SVG gradient
-pub fn compute_face_gradient(
-    face: &RenderFace,
-    scene: &Scene,
-    view_pos: Point3D,
-) -> FaceGradient {
+pub fn compute_face_gradient(face: &RenderFace, scene: &Scene, view_pos: Point3D) -> FaceGradient {
     // 1. Calculate lighting at all vertices
     let mut vertex_colors = Vec::new();
     let mut vertex_intensities = Vec::new();
-    
+
     for v in &face.vertices {
-        let view_dir = Point3D::new(
-            view_pos.x - v.x,
-            view_pos.y - v.y,
-            view_pos.z - v.z,
-        ).normalize();
-        
+        let view_dir =
+            Point3D::new(view_pos.x - v.x, view_pos.y - v.y, view_pos.z - v.z).normalize();
+
         let result = calculate_lighting(*v, face.normal, view_dir, &face.material, scene);
         vertex_colors.push(result.color);
         vertex_intensities.push(result.intensity);
@@ -194,13 +213,16 @@ pub fn compute_face_gradient(
     // 2. Analyze intensity distribution
     let min_i = vertex_intensities.iter().fold(1.0f32, |a, &b| a.min(b));
     let max_i = vertex_intensities.iter().fold(0.0f32, |a, &b| a.max(b));
-    
+
     // If flat lighting, return flat color
     if (max_i - min_i).abs() < 0.05 {
-        let avg_r = vertex_colors.iter().map(|c| c.0 as f32).sum::<f32>() / vertex_colors.len() as f32;
-        let avg_g = vertex_colors.iter().map(|c| c.1 as f32).sum::<f32>() / vertex_colors.len() as f32;
-        let avg_b = vertex_colors.iter().map(|c| c.2 as f32).sum::<f32>() / vertex_colors.len() as f32;
-        
+        let avg_r =
+            vertex_colors.iter().map(|c| c.0 as f32).sum::<f32>() / vertex_colors.len() as f32;
+        let avg_g =
+            vertex_colors.iter().map(|c| c.1 as f32).sum::<f32>() / vertex_colors.len() as f32;
+        let avg_b =
+            vertex_colors.iter().map(|c| c.2 as f32).sum::<f32>() / vertex_colors.len() as f32;
+
         return FaceGradient {
             is_gradient: false,
             start_point: (0.0, 0.0),
@@ -218,26 +240,37 @@ pub fn compute_face_gradient(
     let mut max_idx = 0;
     let mut min_idx = 0;
     for (i, val) in vertex_intensities.iter().enumerate() {
-        if *val > vertex_intensities[max_idx] { max_idx = i; }
-        if *val < vertex_intensities[min_idx] { min_idx = i; }
+        if *val > vertex_intensities[max_idx] {
+            max_idx = i;
+        }
+        if *val < vertex_intensities[min_idx] {
+            min_idx = i;
+        }
     }
-    
+
     // Check for specular highlight (Radial Gradient candidate)
     // If center is brighter than all vertices, it's likely a highlight
     let center_view_dir = Point3D::new(
         view_pos.x - face.center.x,
         view_pos.y - face.center.y,
         view_pos.z - face.center.z,
-    ).normalize();
-    let center_light = calculate_lighting(face.center, face.normal, center_view_dir, &face.material, scene);
-    
+    )
+    .normalize();
+    let center_light = calculate_lighting(
+        face.center,
+        face.normal,
+        center_view_dir,
+        &face.material,
+        scene,
+    );
+
     if center_light.intensity > max_i + 0.1 {
         // Radial gradient for highlight
         return FaceGradient {
             is_gradient: true,
             start_point: (0.0, 0.0),
             end_point: (0.0, 0.0),
-            start_color: center_light.color, // Highlight color
+            start_color: center_light.color,   // Highlight color
             end_color: vertex_colors[min_idx], // Falloff color
             radial: true,
             center: (0.5, 0.5), // Approximate center of face
@@ -250,7 +283,7 @@ pub fn compute_face_gradient(
     // This is complex to map perfectly to SVG polygon space without a transform.
     // Approximation: Use the projected screen coordinates if available, or just use relative index logic.
     // For now, we'll return the colors and let the renderer map them.
-    
+
     FaceGradient {
         is_gradient: true,
         start_point: (0.0, 0.0), // Placeholder, renderer will calculate based on vertex positions
@@ -268,39 +301,43 @@ fn intersect_triangle(ray: &Ray, v0: Point3D, v1: Point3D, v2: Point3D) -> Optio
     let epsilon = 0.0000001;
     let edge1 = Point3D::new(v1.x - v0.x, v1.y - v0.y, v1.z - v0.z);
     let edge2 = Point3D::new(v2.x - v0.x, v2.y - v0.y, v2.z - v0.z);
-    
+
     let h = ray.direction.cross(&edge2);
     let a = edge1.dot(&h);
-    
+
     if a > -epsilon && a < epsilon {
         return None; // Parallel
     }
-    
+
     let f = 1.0 / a;
-    let s = Point3D::new(ray.origin.x - v0.x, ray.origin.y - v0.y, ray.origin.z - v0.z);
+    let s = Point3D::new(
+        ray.origin.x - v0.x,
+        ray.origin.y - v0.y,
+        ray.origin.z - v0.z,
+    );
     let u = f * s.dot(&h);
-    
+
     if u < 0.0 || u > 1.0 {
         return None;
     }
-    
+
     let q = s.cross(&edge1);
     let v = f * ray.direction.dot(&q);
-    
+
     if v < 0.0 || u + v > 1.0 {
         return None;
     }
-    
+
     let t = f * edge2.dot(&q);
-    
+
     if t > epsilon {
         let hit_point = ray.at(t);
         let normal = edge1.cross(&edge2).normalize();
-        
+
         Some(HitRecord {
             t,
             point: hit_point,
-            normal, // Should check facing
+            normal,                               // Should check facing
             material: OpticalMaterial::default(), // Placeholder
         })
     } else {

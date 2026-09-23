@@ -3,9 +3,9 @@
 //! Converts parsed CAD meshes into RUGID-compatible 3D shapes
 //! that can be rendered using the existing rendering system.
 
-use crate::geometry3d::Point3D;
 use crate::cad::CADMesh;
 use crate::cell::CellId;
+use crate::geometry3d::Point3D;
 
 /// Face representation for RUGID rendering
 #[derive(Clone, Debug)]
@@ -98,7 +98,7 @@ impl RugidShape {
                     .map(|(x, y)| format!("{:.2},{:.2}", x, y))
                     .collect::<Vec<_>>()
                     .join(" ");
-                
+
                 svg.push_str(&format!(
                     r#"<polygon points="{}" fill="rgb({},{},{})" />"#,
                     points_str, color.0, color.1, color.2
@@ -150,6 +150,12 @@ pub struct CADRenderer {
     pub shapes: std::collections::HashMap<CellId, RugidShape>,
 }
 
+impl Default for CADRenderer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CADRenderer {
     pub fn new() -> Self {
         Self {
@@ -166,7 +172,8 @@ impl CADRenderer {
     pub fn register_colored(&mut self, id: CellId, mesh: &CADMesh, color: (u8, u8, u8)) {
         let mut normalized = mesh.clone();
         normalized.normalize();
-        self.shapes.insert(id, normalized.to_rugid_shape_colored(color));
+        self.shapes
+            .insert(id, normalized.to_rugid_shape_colored(color));
     }
 
     /// Render a shape to SVG
@@ -186,7 +193,6 @@ impl CADRenderer {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::cad::stl::generate_sample_stl;
     use std::io::Write;
     use tempfile::NamedTempFile;

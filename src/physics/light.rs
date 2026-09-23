@@ -28,8 +28,15 @@ impl Ray {
 #[derive(Clone, Debug, PartialEq)]
 pub enum TextureType {
     None,
-    Checkerboard { color1: (u8, u8, u8), color2: (u8, u8, u8), scale: f32 },
-    Image { path: String, opacity: f32 },
+    Checkerboard {
+        color1: (u8, u8, u8),
+        color2: (u8, u8, u8),
+        scale: f32,
+    },
+    Image {
+        path: String,
+        opacity: f32,
+    },
 }
 
 /// Optical properties of a material
@@ -141,7 +148,10 @@ impl OpticalMaterial {
 pub enum LightSourceType {
     Point,
     Directional,
-    Spot { cutoff_angle: f32, direction: Point3D },
+    Spot {
+        cutoff_angle: f32,
+        direction: Point3D,
+    },
 }
 
 /// A light source in the scene

@@ -1,6 +1,6 @@
-use std::collections::{HashMap, HashSet};
-use crate::signal::SignalId;
 use crate::cell::CellId;
+use crate::signal::SignalId;
+use std::collections::{HashMap, HashSet};
 
 /// The BeaconWatcher:
 /// * Tracks signal versions
@@ -14,6 +14,12 @@ use crate::cell::CellId;
 pub struct BeaconWatcher {
     versions: HashMap<SignalId, u64>,
     dependencies: HashMap<SignalId, HashSet<CellId>>,
+}
+
+impl Default for BeaconWatcher {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl BeaconWatcher {

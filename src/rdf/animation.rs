@@ -2,9 +2,9 @@
 //!
 //! Handles parsing of movement, rotation, and fade animations from RDF syntax.
 
-use super::ast::{AttributeValue, AnimationModifier};
-use crate::temporal::{DeltaProgram, DeltaFrame, DeltaType};
+use super::ast::{AnimationModifier, AttributeValue};
 use crate::cell::CellId;
+use crate::temporal::{DeltaFrame, DeltaProgram, DeltaType};
 
 /// Animation type
 #[derive(Debug, Clone)]
@@ -30,9 +30,9 @@ impl AnimationSpec {
     /// Convert to a DeltaProgram for the temporal memory system
     pub fn to_delta_program(&self, cell_id: CellId) -> DeltaProgram {
         let mut schedule = Vec::new();
-        
+
         let duration = self.duration_frames.max(1);
-        
+
         match self.modifier {
             AnimationModifier::Singular => {
                 // Linear interpolation from start to end
@@ -55,55 +55,55 @@ impl AnimationSpec {
                 schedule = self.generate_continuous_frames(duration);
             }
         }
-        
+
         let delta_type = match self.modifier {
-            AnimationModifier::Singular => DeltaType::Adhesive { 
-                inverse: Box::new(self.generate_inverse_frame())
+            AnimationModifier::Singular => DeltaType::Adhesive {
+                inverse: Box::new(self.generate_inverse_frame()),
             },
             _ => DeltaType::Greasy,
         };
-        
+
         DeltaProgram::new(cell_id, schedule, delta_type)
     }
-    
+
     fn generate_linear_frames(&self, duration: u64) -> Vec<DeltaFrame> {
         let mut frames = Vec::new();
-        
+
         for t in 0..duration {
             let progress = t as f32 / duration as f32;
             let mut frame = DeltaFrame::zero(t, t + 1);
-            
+
             self.apply_deltas(&mut frame, progress, 1.0 / duration as f32);
             frames.push(frame);
         }
-        
+
         frames
     }
-    
+
     fn generate_reverse_frames(&self, duration: u64) -> Vec<DeltaFrame> {
         let mut frames = Vec::new();
         let start_t = duration;
-        
+
         for t in 0..duration {
             let progress = 1.0 - (t as f32 / duration as f32);
             let mut frame = DeltaFrame::zero(start_t + t, start_t + t + 1);
-            
+
             self.apply_deltas(&mut frame, progress, -1.0 / duration as f32);
             frames.push(frame);
         }
-        
+
         frames
     }
-    
+
     fn generate_continuous_frames(&self, duration: u64) -> Vec<DeltaFrame> {
         let mut frames = Vec::new();
-        
+
         // For continuous rotation, 'to' contains the speed per frame
         let speed = self.to.first().copied().unwrap_or(1.0);
-        
+
         for t in 0..duration {
             let mut frame = DeltaFrame::zero(t, t + 1);
-            
+
             match self.anim_type {
                 AnimationType::RotateX => {
                     // Use delta_origin_p for pitch simulation
@@ -119,13 +119,13 @@ impl AnimationSpec {
                 }
                 _ => {}
             }
-            
+
             frames.push(frame);
         }
-        
+
         frames
     }
-    
+
     fn apply_deltas(&self, frame: &mut DeltaFrame, _progress: f32, delta_per_frame: f32) {
         match self.anim_type {
             AnimationType::Move => {
@@ -148,10 +148,10 @@ impl AnimationSpec {
             }
         }
     }
-    
+
     fn generate_inverse_frame(&self) -> DeltaFrame {
         let mut frame = DeltaFrame::zero(0, 1);
-        
+
         match self.anim_type {
             AnimationType::Move => {
                 if self.from.len() >= 2 && self.to.len() >= 2 {
@@ -159,14 +159,12 @@ impl AnimationSpec {
                     frame.delta_origin_p = self.from[1] - self.to[1];
                 }
             }
-            AnimationType::Fade => {
-                if !self.to.is_empty() && !self.from.is_empty() {
-                    frame.delta_a = self.from[0] - self.to[0];
-                }
+            AnimationType::Fade if !self.to.is_empty() && !self.from.is_empty() => {
+                frame.delta_a = self.from[0] - self.to[0];
             }
             _ => {}
         }
-        
+
         frame
     }
 }
@@ -181,17 +179,15 @@ pub fn parse_animation(name: &str, value: &AttributeValue) -> Option<AnimationSp
         "fade" => AnimationType::Fade,
         _ => return None,
     };
-    
+
     match value {
-        AttributeValue::Animation(anim) => {
-            Some(AnimationSpec {
-                anim_type,
-                modifier: anim.anim_type,
-                from: anim.from.clone(),
-                to: anim.to.clone(),
-                duration_frames: anim.duration.unwrap_or(60),
-            })
-        }
+        AttributeValue::Animation(anim) => Some(AnimationSpec {
+            anim_type,
+            modifier: anim.anim_type,
+            from: anim.from.clone(),
+            to: anim.to.clone(),
+            duration_frames: anim.duration.unwrap_or(60),
+        }),
         AttributeValue::Float(f) => {
             // Continuous rotation at speed f
             Some(AnimationSpec {
@@ -208,9 +204,9 @@ pub fn parse_animation(name: &str, value: &AttributeValue) -> Option<AnimationSp
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::ast::AnimationModifier;
-    
+    use super::*;
+
     #[test]
     fn test_move_animation() {
         let spec = AnimationSpec {
@@ -220,11 +216,11 @@ mod tests {
             to: vec![1.0, 0.5],
             duration_frames: 60,
         };
-        
+
         let program = spec.to_delta_program(CellId::next());
         assert_eq!(program.schedule.len(), 60);
     }
-    
+
     #[test]
     fn test_rebound_animation() {
         let spec = AnimationSpec {
@@ -234,7 +230,7 @@ mod tests {
             to: vec![1.0, 0.0],
             duration_frames: 60,
         };
-        
+
         let program = spec.to_delta_program(CellId::next());
         // Forward 30 + backward 30 = 60
         assert_eq!(program.schedule.len(), 60);

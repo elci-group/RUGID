@@ -2,7 +2,6 @@
 ///
 /// Implements analytic radiosity using geometric form factors.
 /// This enables realistic indirect lighting (light bouncing between surfaces).
-
 use crate::geometry3d::Point3D;
 
 /// A surface patch for radiosity computation
@@ -40,6 +39,12 @@ pub struct FormFactorEngine {
     /// Cached form factors (sparse matrix)
     /// Key: (patch_i, patch_j), Value: form factor
     cache: std::collections::HashMap<(usize, usize), f32>,
+}
+
+impl Default for FormFactorEngine {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl FormFactorEngine {
@@ -91,7 +96,8 @@ impl FormFactorEngine {
         }
 
         // Geometric form factor (simplified, no visibility yet)
-        let form_factor = (cos_theta_i * cos_theta_j) / (std::f32::consts::PI * distance * distance);
+        let form_factor =
+            (cos_theta_i * cos_theta_j) / (std::f32::consts::PI * distance * distance);
 
         // TODO: Multiply by visibility factor (1.0 if visible, 0.0 if occluded)
         // For now, assume full visibility

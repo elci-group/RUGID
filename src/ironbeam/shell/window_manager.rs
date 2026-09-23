@@ -1,5 +1,5 @@
 //! IronBeam Window Manager
-//! 
+//!
 //! Manages the layout, docking, and lifecycle of UI panels.
 
 use crate::cell::CellId;
@@ -27,6 +27,12 @@ pub struct WindowManager {
     pub panels: Vec<Panel>,
     pub active_panel: Option<CellId>,
     pub theme: Theme,
+}
+
+impl Default for WindowManager {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl WindowManager {
@@ -60,7 +66,12 @@ impl WindowManager {
     }
 
     /// Calculate the layout rect for a panel based on current state
-    pub fn get_panel_rect(&self, id: CellId, window_width: f32, window_height: f32) -> Option<(f32, f32, f32, f32)> {
+    pub fn get_panel_rect(
+        &self,
+        id: CellId,
+        window_width: f32,
+        window_height: f32,
+    ) -> Option<(f32, f32, f32, f32)> {
         let panel = self.panels.iter().find(|p| p.id == id)?;
         if !panel.visible {
             return None;
@@ -70,11 +81,18 @@ impl WindowManager {
         // In a real system, this would handle complex tiling/splitting
         match panel.position {
             DockPosition::Left => Some((0.0, 0.0, panel.width, window_height)),
-            DockPosition::Right => Some((window_width - panel.width, 0.0, panel.width, window_height)),
+            DockPosition::Right => {
+                Some((window_width - panel.width, 0.0, panel.width, window_height))
+            }
             DockPosition::Bottom => {
                 // Assuming bottom panel spans the full width minus side panels
                 // For simplicity, just full width for now
-                Some((0.0, window_height - panel.height, window_width, panel.height))
+                Some((
+                    0.0,
+                    window_height - panel.height,
+                    window_width,
+                    panel.height,
+                ))
             }
             DockPosition::Center => {
                 // Center fills remaining space

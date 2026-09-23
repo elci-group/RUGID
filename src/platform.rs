@@ -14,12 +14,12 @@ pub trait Platform {
     fn poll_events(&mut self) -> Vec<PlatformEvent>;
     fn render(&mut self, svg: String);
     fn handle_event(&mut self, _event: &Event<()>) {}
-    
+
     /// Get the current viewport dimensions (width, height)
     fn dimensions(&self) -> (f32, f32) {
         (800.0, 600.0) // Default dimensions
     }
-    
+
     /// Set the window title
     fn set_title(&mut self, _title: &str) {}
 }
@@ -31,6 +31,12 @@ pub struct HeadlessPlatform {
     height: f32,
 }
 
+impl Default for HeadlessPlatform {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl HeadlessPlatform {
     pub fn new() -> Self {
         Self {
@@ -40,7 +46,7 @@ impl HeadlessPlatform {
             height: 600.0,
         }
     }
-    
+
     pub fn with_dimensions(width: f32, height: f32) -> Self {
         Self {
             events: Vec::new(),
@@ -65,7 +71,7 @@ impl Platform for HeadlessPlatform {
     fn render(&mut self, svg: String) {
         self.last_frame = Some(svg);
     }
-    
+
     fn dimensions(&self) -> (f32, f32) {
         (self.width, self.height)
     }
@@ -79,11 +85,11 @@ mod tests {
     fn test_headless_platform() {
         let mut platform = HeadlessPlatform::new();
         platform.inject_event(PlatformEvent::Quit);
-        
+
         let events = platform.poll_events();
         assert_eq!(events.len(), 1);
         match events[0] {
-            PlatformEvent::Quit => {},
+            PlatformEvent::Quit => {}
             _ => panic!("Wrong event type"),
         }
 

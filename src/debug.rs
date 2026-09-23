@@ -1,5 +1,5 @@
-use crate::temporal::TemporalMemory;
 use crate::cell::CellId;
+use crate::temporal::TemporalMemory;
 
 pub struct TemporalDebugger;
 
@@ -11,9 +11,14 @@ impl TemporalDebugger {
         if let Some(programs) = memory.get_programs(cell_id) {
             report.push_str(&format!("  Active Programs: {}\n", programs.len()));
             for (i, prog) in programs.iter().enumerate() {
-                report.push_str(&format!("    Program #{}: Type={:?}, Frames={}\n", 
-                    i, prog.delta_type, prog.schedule.len()));
-                report.push_str(&format!("      Accumulation: R={}, G={}, B={}, A={}\n",
+                report.push_str(&format!(
+                    "    Program #{}: Type={:?}, Frames={}\n",
+                    i,
+                    prog.delta_type,
+                    prog.schedule.len()
+                ));
+                report.push_str(&format!(
+                    "      Accumulation: R={}, G={}, B={}, A={}\n",
                     prog.accumulation.delta_r,
                     prog.accumulation.delta_g,
                     prog.accumulation.delta_b,
@@ -35,9 +40,9 @@ impl TemporalDebugger {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::temporal::{DeltaProgram, DeltaFrame, DeltaType};
     use crate::cell::Cell;
     use crate::geometry::VectorRegion;
+    use crate::temporal::{DeltaFrame, DeltaProgram, DeltaType};
 
     #[test]
     fn test_debugger_inspection() {
@@ -45,11 +50,7 @@ mod tests {
         let cell = Cell::new(VectorRegion::new(0.0, 0.0, 1.0, 1.0));
 
         let frame = DeltaFrame::zero(0, 10);
-        let program = DeltaProgram::new(
-            cell.id,
-            vec![frame],
-            DeltaType::Greasy,
-        );
+        let program = DeltaProgram::new(cell.id, vec![frame], DeltaType::Greasy);
 
         memory.add_program(program);
 

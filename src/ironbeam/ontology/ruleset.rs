@@ -1,5 +1,5 @@
 //! IronBeam Ontological Ruleset
-//! 
+//!
 //! Defines the rulesets for different scales of existence.
 
 use crate::ironbeam::ontology::physics_config::PhysicsConfig;

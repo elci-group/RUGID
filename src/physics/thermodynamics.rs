@@ -3,8 +3,8 @@
 //! Implements heat transfer, phase transitions (solid ↔ liquid ↔ gas),
 //! and temperature-dependent material properties.
 
-use crate::geometry3d::Point3D;
 use crate::cell::CellId;
+use crate::geometry3d::Point3D;
 use std::collections::HashMap;
 
 /// Physical state of matter
@@ -45,12 +45,12 @@ impl Default for Thermodynamics {
     fn default() -> Self {
         // Default to water properties
         Self {
-            temperature: 293.15, // 20°C
-            heat_capacity: 4186.0, // Water
-            thermal_conductivity: 0.6, // Water
-            melting_point: 273.15, // 0°C
-            boiling_point: 373.15, // 100°C
-            latent_heat_fusion: 334000.0, // Water
+            temperature: 293.15,                 // 20°C
+            heat_capacity: 4186.0,               // Water
+            thermal_conductivity: 0.6,           // Water
+            melting_point: 273.15,               // 0°C
+            boiling_point: 373.15,               // 100°C
+            latent_heat_fusion: 334000.0,        // Water
             latent_heat_vaporization: 2260000.0, // Water
             phase: PhaseState::Liquid,
             transition_energy: 0.0,
@@ -94,10 +94,10 @@ impl Thermodynamics {
     pub fn metal(mass: f32) -> Self {
         Self {
             temperature: 293.15,
-            heat_capacity: 450.0, // Iron
+            heat_capacity: 450.0,       // Iron
             thermal_conductivity: 80.0, // Iron
-            melting_point: 1811.0, // Iron
-            boiling_point: 3134.0, // Iron
+            melting_point: 1811.0,      // Iron
+            boiling_point: 3134.0,      // Iron
             latent_heat_fusion: 247000.0,
             latent_heat_vaporization: 6090000.0,
             phase: PhaseState::Solid,
@@ -127,6 +127,12 @@ pub struct ThermodynamicsSystem {
     pub ambient_temperature: f32,
     /// Stefan-Boltzmann constant (for radiation)
     pub stefan_boltzmann: f32,
+}
+
+impl Default for ThermodynamicsSystem {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ThermodynamicsSystem {
@@ -179,7 +185,9 @@ impl ThermodynamicsSystem {
             if let Some(thermo) = self.states.get(id) {
                 let surface_area = thermo.mass.powf(2.0 / 3.0); // Approximate
                 let emissivity = 0.9; // Assume high emissivity
-                let radiation = emissivity * self.stefan_boltzmann * surface_area
+                let radiation = emissivity
+                    * self.stefan_boltzmann
+                    * surface_area
                     * (thermo.temperature.powi(4) - self.ambient_temperature.powi(4));
                 heat_in -= radiation * dt;
             }

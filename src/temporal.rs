@@ -1,6 +1,6 @@
 use crate::cell::CellId;
-use crate::scheduler::{Scheduler, MegaCellId};
 use crate::morphism::ShapeType;
+use crate::scheduler::{MegaCellId, Scheduler};
 use std::collections::{HashMap, HashSet};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -78,7 +78,7 @@ impl DeltaFrame {
 pub enum DeltaType {
     /// Persist in the cell state, modify baseline.
     /// Must declare an inverse for reversibility.
-    Adhesive { inverse: Box<DeltaFrame> }, 
+    Adhesive { inverse: Box<DeltaFrame> },
     /// Do not persist, leave no residue.
     Greasy,
 }
@@ -107,43 +107,43 @@ impl DeltaProgram {
 /// Input format: `[MODIFIERS]START_X,START_Y<md<END_X,END_Y~DURATION`
 pub fn parse_movement(input: &str, start_time: u64) -> Result<Vec<DeltaFrame>, String> {
     let input = input.trim();
-    
+
     // Check modifiers
     let is_yoyo = input.contains("{~}");
     let is_cycle = input.contains("[~]");
-    
+
     // Clean input of modifiers
     let clean_input = input.replace("{~}", "").replace("[~]", "");
-    
+
     // Parse parts: START<md<END~DURATION
     // Split by '~' first to get duration
     let parts: Vec<&str> = clean_input.split('~').collect();
     if parts.len() != 2 {
         return Err("Missing duration (~Ts)".to_string());
     }
-    
+
     let duration_str = parts[1];
     let duration: u64 = duration_str.parse().map_err(|_| "Invalid duration")?;
-    
+
     // Split remaining by '<md<'
     let coords_part = parts[0];
     let coords: Vec<&str> = coords_part.split("<md<").collect();
     if coords.len() != 2 {
         return Err("Invalid coordinate format (expected START<md<END)".to_string());
     }
-    
+
     let start_coords: Vec<&str> = coords[0].split(',').collect();
     let end_coords: Vec<&str> = coords[1].split(',').collect();
-    
+
     if start_coords.len() != 2 || end_coords.len() != 2 {
         return Err("Coordinates must be x,y".to_string());
     }
-    
+
     let start_x: f32 = start_coords[0].parse().map_err(|_| "Invalid start x")?;
     let start_y: f32 = start_coords[1].parse().map_err(|_| "Invalid start y")?;
     let end_x: f32 = end_coords[0].parse().map_err(|_| "Invalid end x")?;
     let end_y: f32 = end_coords[1].parse().map_err(|_| "Invalid end y")?;
-    
+
     // Convert percentages to 0.0-1.0 range if they are > 1.0?
     // User example: 20,20 ... 80,80. Usually implies 20% -> 0.2.
     // I'll assume input is 0-100 and convert to 0.0-1.0
@@ -151,12 +151,12 @@ pub fn parse_movement(input: &str, start_time: u64) -> Result<Vec<DeltaFrame>, S
     let s_y = start_y / 100.0;
     let e_x = end_x / 100.0;
     let e_y = end_y / 100.0;
-    
+
     let delta_x = e_x - s_x;
     let delta_y = e_y - s_y;
-    
+
     let mut frames = Vec::new();
-    
+
     // Velocity per tick
     // If duration is in seconds, and we assume 1 tick = 1 second (or user meant ticks?)
     // User said "~Ts" implies seconds.
@@ -165,17 +165,17 @@ pub fn parse_movement(input: &str, start_time: u64) -> Result<Vec<DeltaFrame>, S
     if duration == 0 {
         return Err("Duration cannot be 0".to_string());
     }
-    
+
     let vx = delta_x / duration as f32;
     let vy = delta_y / duration as f32;
-    
+
     // Create forward frame
     let mut frame = DeltaFrame::zero(start_time, start_time + duration);
     frame.delta_origin_p = vy; // Primary axis = Y (usually)
     frame.delta_origin_s = vx; // Secondary axis = X (usually)
-    
+
     frames.push(frame);
-    
+
     if is_yoyo {
         // Add return frame
         let mut return_frame = DeltaFrame::zero(start_time + duration, start_time + duration * 2);
@@ -193,7 +193,7 @@ pub fn parse_movement(input: &str, start_time: u64) -> Result<Vec<DeltaFrame>, S
         // If we wanted to emulate a "box" pattern more explicitly, we could add a 0-duration return frame?
         // No, Greasy handles the subtraction.
     }
-    
+
     Ok(frames)
 }
 
@@ -217,7 +217,10 @@ impl TemporalMemory {
     }
 
     pub fn add_program(&mut self, program: DeltaProgram) {
-        self.programs.entry(program.target).or_default().push(program);
+        self.programs
+            .entry(program.target)
+            .or_default()
+            .push(program);
     }
 
     pub fn update_cell_location(&mut self, cell_id: CellId, mega_cell: MegaCellId) {
@@ -232,18 +235,18 @@ impl TemporalMemory {
 
         // 1. Identify active MegaCells
         let mut active_megacells = HashSet::new();
-        
+
         // Iterate programs to find which cells are active
         for (cell_id, programs) in &self.programs {
-             if !programs.is_empty() {
-                 // Look up MegaCellId
-                 if let Some(mc_id) = self.cell_locations.get(cell_id) {
-                     active_megacells.insert(*mc_id);
-                 } else {
-                     // Default to 0 if unknown (fallback)
-                     active_megacells.insert(MegaCellId(0));
-                 }
-             }
+            if !programs.is_empty() {
+                // Look up MegaCellId
+                if let Some(mc_id) = self.cell_locations.get(cell_id) {
+                    active_megacells.insert(*mc_id);
+                } else {
+                    // Default to 0 if unknown (fallback)
+                    active_megacells.insert(MegaCellId(0));
+                }
+            }
         }
 
         for mc in active_megacells {
@@ -251,12 +254,17 @@ impl TemporalMemory {
         }
 
         // 2. Get batch
-        let allowed_megacells: HashSet<MegaCellId> = self.scheduler.next_batch().into_iter().collect();
+        let allowed_megacells: HashSet<MegaCellId> =
+            self.scheduler.next_batch().into_iter().collect();
 
         // Iterate over all cells and their programs
         for (cell_id, programs) in self.programs.iter_mut() {
-            let mc_id = self.cell_locations.get(cell_id).cloned().unwrap_or(MegaCellId(0));
-            
+            let mc_id = self
+                .cell_locations
+                .get(cell_id)
+                .cloned()
+                .unwrap_or(MegaCellId(0));
+
             // If this cell's MegaCell is NOT in the allowed batch, skip it.
             if !allowed_megacells.contains(&mc_id) {
                 continue;
@@ -264,18 +272,19 @@ impl TemporalMemory {
 
             let mut net_delta = DeltaFrame::zero(self.current_time, self.current_time + 1);
             let mut active_cell = false;
-            
+
             let mut finished_indices = Vec::new();
 
             for (i, prog) in programs.iter_mut().enumerate() {
                 // Find frame for current time
-                let frame = prog.schedule.iter().find(|f| {
-                    self.current_time >= f.t_start && self.current_time < f.t_end
-                });
+                let frame = prog
+                    .schedule
+                    .iter()
+                    .find(|f| self.current_time >= f.t_start && self.current_time < f.t_end);
 
                 if let Some(f) = frame {
                     net_delta.add(f);
-                    
+
                     // Track accumulation for Greasy deltas
                     if let DeltaType::Greasy = prog.delta_type {
                         prog.accumulation.add(f);
@@ -347,12 +356,8 @@ mod tests {
             delta_morph_progress: 0.0,
             target_shape: None,
         };
-        
-        let program = DeltaProgram::new(
-            cell.id,
-            vec![frame1],
-            DeltaType::Greasy,
-        );
+
+        let program = DeltaProgram::new(cell.id, vec![frame1], DeltaType::Greasy);
 
         memory.add_program(program);
 
@@ -391,15 +396,11 @@ mod tests {
             delta_morph_progress: 0.0,
             target_shape: None,
         };
-        
+
         // Mock inverse
         let inverse = Box::new(DeltaFrame::zero(0, 0));
 
-        let program = DeltaProgram::new(
-            cell.id,
-            vec![frame1],
-            DeltaType::Adhesive { inverse },
-        );
+        let program = DeltaProgram::new(cell.id, vec![frame1], DeltaType::Adhesive { inverse });
 
         memory.add_program(program);
 
@@ -421,12 +422,12 @@ mod tests {
     fn test_parse_movement() {
         let input = "20,20<md<80,80~5";
         let frames = parse_movement(input, 0).unwrap();
-        
+
         assert_eq!(frames.len(), 1);
         let f = &frames[0];
         assert_eq!(f.t_start, 0);
         assert_eq!(f.t_end, 5);
-        
+
         // 20->80 = 60% = 0.6
         // Duration 5
         // Velocity = 0.6 / 5 = 0.12
@@ -438,14 +439,14 @@ mod tests {
     fn test_parse_movement_yoyo() {
         let input = "{~}20,20<md<80,80~5";
         let frames = parse_movement(input, 0).unwrap();
-        
+
         assert_eq!(frames.len(), 2);
-        
+
         let f1 = &frames[0];
         assert_eq!(f1.t_start, 0);
         assert_eq!(f1.t_end, 5);
         assert!((f1.delta_origin_p - 0.12).abs() < 1e-5);
-        
+
         let f2 = &frames[1];
         assert_eq!(f2.t_start, 5);
         assert_eq!(f2.t_end, 10);

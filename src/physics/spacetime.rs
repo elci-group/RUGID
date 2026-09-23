@@ -4,8 +4,8 @@
 //! curvature caused by massive bodies. Includes embedding diagrams
 //! and geodesic path calculation.
 
-use crate::geometry3d::Point3D;
 use crate::cell::CellId;
+use crate::geometry3d::Point3D;
 
 /// A single node in the spacetime grid
 #[derive(Clone, Debug)]
@@ -174,7 +174,9 @@ impl SpacetimeSystem {
                 for body in &self.massive_bodies {
                     let dx = rest.x - body.position.x;
                     let dy = rest.y - body.position.y;
-                    let dist = (dx * dx + dy * dy).sqrt().max(body.schwarzschild_radius + 0.1);
+                    let dist = (dx * dx + dy * dy)
+                        .sqrt()
+                        .max(body.schwarzschild_radius + 0.1);
                     let ratio = body.schwarzschild_radius / dist;
                     if ratio < 1.0 {
                         dilation *= 1.0 / (1.0 - ratio).sqrt();

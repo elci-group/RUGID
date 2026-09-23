@@ -39,30 +39,27 @@ impl Diffuser {
     pub fn resolve(projections: Vec<Projection>) -> Vec<DeltaProgram> {
         // In a real implementation, we would group by target cell first.
         // Here we assume single target or handle independently.
-        
+
         let mut resolved_programs = Vec::new();
 
         for proj in projections {
             let mut program = proj.delta;
-            
+
             // Apply behaviour flags to the schedule
-            match proj.behaviour {
-                BehaviourFlag::Fade(opacity) => {
-                    for frame in &mut program.schedule {
-                        frame.delta_a *= opacity;
-                    }
+            if let BehaviourFlag::Fade(opacity) = proj.behaviour {
+                for frame in &mut program.schedule {
+                    frame.delta_a *= opacity;
                 }
-                _ => {} // Other flags might affect transform or geometry
-            }
+            } // Other flags might affect transform or geometry
 
             resolved_programs.push(program);
         }
 
-        // Note: We are NOT summing them here yet. 
+        // Note: We are NOT summing them here yet.
         // The directive says "The final cell value is Σ(Projectors)".
         // But TemporalMemory sums them per tick.
         // So Diffuser just prepares/transforms them.
-        
+
         resolved_programs
     }
 }
@@ -71,7 +68,7 @@ impl Diffuser {
 mod tests {
     use super::*;
     use crate::cell::CellId;
-    use crate::temporal::{DeltaType, DeltaFrame};
+    use crate::temporal::{DeltaFrame, DeltaType};
 
     #[test]
     fn test_diffuser_behaviour_application() {
@@ -79,11 +76,7 @@ mod tests {
         let mut frame = DeltaFrame::zero(0, 10);
         frame.delta_a = 1.0;
 
-        let program = DeltaProgram::new(
-            cell_id,
-            vec![frame],
-            DeltaType::Greasy,
-        );
+        let program = DeltaProgram::new(cell_id, vec![frame], DeltaType::Greasy);
 
         let p = Projection {
             delta: program,

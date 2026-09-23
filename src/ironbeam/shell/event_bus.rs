@@ -1,31 +1,31 @@
 //! IronBeam Event Bus
-//! 
+//!
 //! Handles cross-component messaging and event distribution.
 
+use crate::cell::CellId;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use crate::cell::CellId;
 
 #[derive(Clone, Debug)]
 pub enum IronBeamEvent {
     // Window Management
     WindowFocus(CellId),
     WindowClose(CellId),
-    
+
     // Selection
     SelectionChanged(Vec<CellId>),
-    
+
     // Staging
     ModelAdded(CellId),
     ModelRemoved(CellId),
-    
+
     // Ontology
     RulesetChanged(String), // TODO: Use enum when available
-    
+
     // IDE
     FileOpened(String),
     CodeChanged(String),
-    
+
     // Generic
     Command(String),
 }
@@ -34,6 +34,12 @@ pub type EventHandler = Box<dyn Fn(&IronBeamEvent) + Send + Sync>;
 
 pub struct EventBus {
     subscribers: Arc<Mutex<HashMap<String, Vec<EventHandler>>>>,
+}
+
+impl Default for EventBus {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl EventBus {
@@ -49,7 +55,7 @@ impl EventBus {
     {
         let mut subs = self.subscribers.lock().unwrap();
         subs.entry(topic.to_string())
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(Box::new(handler));
     }
 

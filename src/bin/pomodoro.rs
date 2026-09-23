@@ -2,13 +2,13 @@
 // Backend: Rust timer logic
 // Frontend: RUGID UI framework
 
-use rugid::runtime::Runtime;
 use rugid::cell::Cell;
 use rugid::geometry::VectorRegion;
-use rugid::layout::{LayoutNode, LayoutDirection, LayoutConstraint, LayoutSolver};
-use rugid::widgets::{ButtonProjector, SliderProjector};
-use rugid::platform::{HeadlessPlatform, Platform, PlatformEvent};
 use rugid::input::InputEvent;
+use rugid::layout::{LayoutConstraint, LayoutDirection, LayoutNode, LayoutSolver};
+use rugid::platform::{Platform, PlatformEvent};
+use rugid::runtime::Runtime;
+use rugid::widgets::{ButtonProjector, SliderProjector};
 use std::fs;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
@@ -53,13 +53,13 @@ impl PomodoroBackend {
         }
     }
 
-    fn pause(&mut self) {
+    fn _pause(&mut self) {
         if self.state == TimerState::Running {
             self.state = TimerState::Paused;
         }
     }
 
-    fn reset(&mut self) {
+    fn _reset(&mut self) {
         self.state = TimerState::Idle;
         self.remaining = self.work_duration;
     }
@@ -118,11 +118,11 @@ fn main() {
 
     // Initialize Frontend (Headless for demo)
     let event_queue = Arc::new(Mutex::new(Vec::new()));
-    
+
     struct SharedPlatform {
         queue: Arc<Mutex<Vec<PlatformEvent>>>,
     }
-    
+
     impl Platform for SharedPlatform {
         fn poll_events(&mut self) -> Vec<PlatformEvent> {
             let mut q = self.queue.lock().unwrap();
@@ -138,7 +138,7 @@ fn main() {
     let mut runtime = Runtime::new(100, platform);
 
     // --- UI Layout ---
-    // 
+    //
     // +------------------------+
     // |     POMODORO TIMER     |  <- Header
     // +------------------------+
@@ -166,7 +166,7 @@ fn main() {
             LayoutNode::leaf(start_btn_cell.id, LayoutConstraint::Flex(1.0)),
             LayoutNode::leaf(pause_btn_cell.id, LayoutConstraint::Flex(1.0)),
             LayoutNode::leaf(reset_btn_cell.id, LayoutConstraint::Flex(1.0)),
-        ]
+        ],
     );
 
     // Root Layout (Column)
@@ -178,7 +178,7 @@ fn main() {
             LayoutNode::leaf(timer_display_cell.id, LayoutConstraint::Flex(1.0)),
             controls_layout,
             LayoutNode::leaf(status_cell.id, LayoutConstraint::Fixed(0.1)),
-        ]
+        ],
     );
 
     let screen_rect = VectorRegion::new(0.0, 0.0, 1.0, 1.0);
@@ -186,51 +186,81 @@ fn main() {
 
     // Register Widgets
     let header_id = header_cell.id;
-    runtime.register_cell(header_cell, Box::new(ButtonProjector {
-        target: header_id,
-        geometry: *layout_map.get(&header_id).unwrap(),
-        label: "POMODORO".to_string(),
-    }), None, None);
+    runtime.register_cell(
+        header_cell,
+        Box::new(ButtonProjector {
+            target: header_id,
+            geometry: *layout_map.get(&header_id).unwrap(),
+            label: "POMODORO".to_string(),
+        }),
+        None,
+        None,
+    );
 
     let timer_id = timer_display_cell.id;
-    runtime.register_cell(timer_display_cell, Box::new(SliderProjector {
-        target: timer_id,
-        geometry: *layout_map.get(&timer_id).unwrap(),
-        value: 0.0, // Progress
-    }), None, None);
+    runtime.register_cell(
+        timer_display_cell,
+        Box::new(SliderProjector {
+            target: timer_id,
+            geometry: *layout_map.get(&timer_id).unwrap(),
+            value: 0.0, // Progress
+        }),
+        None,
+        None,
+    );
 
     let start_id = start_btn_cell.id;
-    runtime.register_cell(start_btn_cell, Box::new(ButtonProjector {
-        target: start_id,
-        geometry: *layout_map.get(&start_id).unwrap(),
-        label: "START".to_string(),
-    }), None, None);
+    runtime.register_cell(
+        start_btn_cell,
+        Box::new(ButtonProjector {
+            target: start_id,
+            geometry: *layout_map.get(&start_id).unwrap(),
+            label: "START".to_string(),
+        }),
+        None,
+        None,
+    );
 
     let pause_id = pause_btn_cell.id;
-    runtime.register_cell(pause_btn_cell, Box::new(ButtonProjector {
-        target: pause_id,
-        geometry: *layout_map.get(&pause_id).unwrap(),
-        label: "PAUSE".to_string(),
-    }), None, None);
+    runtime.register_cell(
+        pause_btn_cell,
+        Box::new(ButtonProjector {
+            target: pause_id,
+            geometry: *layout_map.get(&pause_id).unwrap(),
+            label: "PAUSE".to_string(),
+        }),
+        None,
+        None,
+    );
 
     let reset_id = reset_btn_cell.id;
-    runtime.register_cell(reset_btn_cell, Box::new(ButtonProjector {
-        target: reset_id,
-        geometry: *layout_map.get(&reset_id).unwrap(),
-        label: "RESET".to_string(),
-    }), None, None);
+    runtime.register_cell(
+        reset_btn_cell,
+        Box::new(ButtonProjector {
+            target: reset_id,
+            geometry: *layout_map.get(&reset_id).unwrap(),
+            label: "RESET".to_string(),
+        }),
+        None,
+        None,
+    );
 
     let status_id = status_cell.id;
-    runtime.register_cell(status_cell, Box::new(ButtonProjector {
-        target: status_id,
-        geometry: *layout_map.get(&status_id).unwrap(),
-        label: "Sessions: 0".to_string(),
-    }), None, None);
+    runtime.register_cell(
+        status_cell,
+        Box::new(ButtonProjector {
+            target: status_id,
+            geometry: *layout_map.get(&status_id).unwrap(),
+            label: "Sessions: 0".to_string(),
+        }),
+        None,
+        None,
+    );
 
     // ============================================
     // SIMULATION LOOP (Demonstrates Integration)
     // ============================================
-    
+
     println!("\n📌 Simulating 10 ticks (1 second each in accelerated time)...\n");
 
     // For demo: We'll simulate accelerated time (1 tick = 1 virtual minute)
@@ -242,7 +272,10 @@ fn main() {
     }
 
     // Start the timer
-    queue_ref.lock().unwrap().push(PlatformEvent::Input(InputEvent::PointerDown)); // Simulate start click
+    queue_ref
+        .lock()
+        .unwrap()
+        .push(PlatformEvent::Input(InputEvent::PointerDown)); // Simulate start click
     {
         let mut b = backend.lock().unwrap();
         b.start();
@@ -254,14 +287,14 @@ fn main() {
         {
             let mut b = backend.lock().unwrap();
             b.tick();
-            
+
             let state_emoji = match b.state {
                 TimerState::Idle => "⏹️",
                 TimerState::Running => "▶️",
                 TimerState::Paused => "⏸️",
                 TimerState::Break => "☕",
             };
-            
+
             println!(
                 "Tick {:02}: {} {} | Progress: {:.0}% | Sessions: {}",
                 t,
@@ -284,7 +317,7 @@ fn main() {
 
     println!("\n✅ Simulation Complete!");
     println!("📁 SVG frames saved: pomodoro_frame_XX.svg");
-    
+
     // Final state
     let b = backend.lock().unwrap();
     println!("\n📊 Final State:");

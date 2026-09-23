@@ -11,14 +11,19 @@ pub struct Slider {
 
 impl Slider {
     pub fn new(id: CellId, value: f32, min: f32, max: f32) -> Self {
-        Self { id, value, min, max }
+        Self {
+            id,
+            value,
+            min,
+            max,
+        }
     }
-    
+
     pub fn render(&self) -> String {
         let pct = (self.value - self.min) / (self.max - self.min);
         let width = 200.0;
         let pos = pct * width;
-        
+
         format!(
             r##"<rect width="{}" height="4" fill="#454545" y="13" rx="2" />
                <rect width="{}" height="4" fill="#007acc" y="13" rx="2" />

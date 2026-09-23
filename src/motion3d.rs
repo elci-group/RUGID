@@ -22,7 +22,7 @@ impl Translation3DState {
             velocity: Point3D::new(vx, vy, vz),
         }
     }
-    
+
     pub fn update(&mut self) {
         self.current.x += self.velocity.x;
         self.current.y += self.velocity.y;
@@ -41,11 +41,11 @@ pub enum OrbitAxis {
 /// State for orbital motion (Circling)
 #[derive(Clone, Debug, PartialEq)]
 pub struct Orbit3DState {
-    pub angle: f32,       // Current angle in degrees
-    pub speed: f32,       // Angular velocity (deg/frame)
-    pub radius: f32,      // Orbit radius
-    pub center: Point3D,  // Center of orbit (relative to shape center)
-    pub axis: OrbitAxis,  // Axis of rotation
+    pub angle: f32,      // Current angle in degrees
+    pub speed: f32,      // Angular velocity (deg/frame)
+    pub radius: f32,     // Orbit radius
+    pub center: Point3D, // Center of orbit (relative to shape center)
+    pub axis: OrbitAxis, // Axis of rotation
 }
 
 impl Orbit3DState {
@@ -58,35 +58,23 @@ impl Orbit3DState {
             axis,
         }
     }
-    
+
     pub fn update(&mut self) {
         self.angle += self.speed;
         self.angle %= 360.0;
     }
-    
+
     /// Calculate current offset based on orbit
     pub fn get_offset(&self) -> Point3D {
         let rad = self.angle.to_radians();
         let sin = rad.sin();
         let cos = rad.cos();
         let r = self.radius;
-        
+
         match self.axis {
-            OrbitAxis::X => Point3D::new(
-                0.0,
-                r * cos,
-                r * sin
-            ),
-            OrbitAxis::Y => Point3D::new(
-                r * sin,
-                0.0,
-                r * cos
-            ),
-            OrbitAxis::Z => Point3D::new(
-                r * cos,
-                r * sin,
-                0.0
-            ),
+            OrbitAxis::X => Point3D::new(0.0, r * cos, r * sin),
+            OrbitAxis::Y => Point3D::new(r * sin, 0.0, r * cos),
+            OrbitAxis::Z => Point3D::new(r * cos, r * sin, 0.0),
         }
     }
 }

@@ -1,12 +1,12 @@
 //! IronBeam Viewport
-//! 
+//!
 //! The primary 3D view component.
 
 use crate::cell::CellId;
-use crate::ironbeam::viewer::camera::{Camera3D, CameraController};
-use crate::ironbeam::viewer::staging::StagingManager;
-use crate::ironbeam::viewer::gizmo::GizmoSystem;
 use crate::input::InputEvent;
+use crate::ironbeam::viewer::camera::{Camera3D, CameraController};
+use crate::ironbeam::viewer::gizmo::GizmoSystem;
+use crate::ironbeam::viewer::staging::StagingManager;
 
 #[derive(Clone, Debug)]
 pub struct GridConfig {
@@ -62,38 +62,38 @@ impl ViewerPane {
 
     pub fn render(&self) -> String {
         let mut svg = String::new();
-        
+
         // 1. Background (transparent or solid)
         svg.push_str(&format!(
             r##"<rect x="0" y="0" width="{}" height="{}" fill="#1e1e1e" />"##,
             self.width, self.height
         ));
-        
+
         // 2. Grid
         if self.grid.visible {
             // Render grid lines
         }
-        
+
         // 3. Models
         // In a real implementation, we would sort by depth and project vertices
         // For now, we delegate to the existing RUGID renderer logic or implement a simplified one here
-        // Since this is "IronBeam", it's a UI overlay. The actual 3D rendering might happen 
+        // Since this is "IronBeam", it's a UI overlay. The actual 3D rendering might happen
         // via the main RUGID renderer, and this pane just controls it.
         // BUT, the requirement is "zero z-depth GUI... using RUGID itself".
         // So this pane IS a RUGID cell that renders 3D content.
-        
+
         // Iterate staged models and render them
-        for (_, model) in &self.staging.models {
+        for model in self.staging.models.values() {
             if model.visibility {
                 // Project and render mesh
             }
         }
-        
+
         // 4. Gizmo
         if let Some(center) = self.staging.get_selection_center() {
             svg.push_str(&self.gizmo.render(&self.camera, center));
         }
-        
+
         svg
     }
 }

@@ -2,8 +2,7 @@
 ///
 /// Tests the accuracy of RUGID's physics engine by comparing
 /// simulated projectile motion to analytical ground truth.
-
-use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
+use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
 use rugid::geometry3d::Point3D;
 
 /// Analytical solution for free fall
@@ -68,18 +67,25 @@ fn vector_transform_performance(c: &mut Criterion) {
             .collect();
 
         b.iter(|| {
-            points.iter().map(|p| {
-                let mut transformed = *p;
-                transformed.x += 1.0;
-                transformed.y *= 2.0;
-                transformed.z -= 0.5;
-                transformed
-            }).collect::<Vec<_>>()
+            points
+                .iter()
+                .map(|p| {
+                    let mut transformed = *p;
+                    transformed.x += 1.0;
+                    transformed.y *= 2.0;
+                    transformed.z -= 0.5;
+                    transformed
+                })
+                .collect::<Vec<_>>()
         });
     });
 
     group.finish();
 }
 
-criterion_group!(benches, falling_spheres_precision, vector_transform_performance);
+criterion_group!(
+    benches,
+    falling_spheres_precision,
+    vector_transform_performance
+);
 criterion_main!(benches);

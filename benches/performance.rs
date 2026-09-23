@@ -4,10 +4,9 @@
 /// - Radiosity solver
 /// - SPH fluid simulation  
 /// - CCD collision detection
-
-use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
-use rugid::physics::{Patch, RadiositySolver};
+use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
 use rugid::geometry3d::Point3D;
+use rugid::physics::{Patch, RadiositySolver};
 
 fn radiosity_solver_benchmark(c: &mut Criterion) {
     let mut group = c.benchmark_group("radiosity");
@@ -19,17 +18,17 @@ fn radiosity_solver_benchmark(c: &mut Criterion) {
             |b, &n| {
                 b.iter(|| {
                     let mut solver = RadiositySolver::new();
-                    
+
                     // Create patches in a cornell box
                     let mut patches = Vec::new();
                     for i in 0..n {
                         let x = (i % 10) as f32;
                         let y = (i / 10) as f32;
-                        
+
                         patches.push(Patch::new(
                             Point3D::new(x, y, 0.0),
                             Point3D::new(0.0, 0.0, 1.0),
-                            1.0, // 1m²
+                            1.0,             // 1m²
                             (0.8, 0.8, 0.8), // albedo
                         ));
                     }
@@ -41,7 +40,7 @@ fn radiosity_solver_benchmark(c: &mut Criterion) {
                     }
 
                     solver.solve(black_box(&mut patches));
-                    
+
                     // Return number of iterations (convergence speed)
                     patches.len()
                 });
@@ -57,13 +56,7 @@ fn vector_ops_benchmark(c: &mut Criterion) {
 
     group.bench_function("point_transformations_10k", |b| {
         let points: Vec<Point3D> = (0..10000)
-            .map(|i| {
-                Point3D::new(
-                    (i % 100) as f32,
-                    (i / 100) as f32,
-                    (i / 10000) as f32,
-                )
-            })
+            .map(|i| Point3D::new((i % 100) as f32, (i / 100) as f32, (i / 10000) as f32))
             .collect();
 
         b.iter(|| {
@@ -87,12 +80,7 @@ fn vector_ops_benchmark(c: &mut Criterion) {
             .map(|i| Point3D::new(i as f32, i as f32 * 2.0, i as f32 * 3.0))
             .collect();
 
-        b.iter(|| {
-            points
-                .iter()
-                .map(|p| black_box(v1.dot(p)))
-                .sum::<f32>()
-        });
+        b.iter(|| points.iter().map(|p| black_box(v1.dot(p))).sum::<f32>());
     });
 
     group.bench_function("normalize_10k", |b| {
@@ -100,12 +88,7 @@ fn vector_ops_benchmark(c: &mut Criterion) {
             .map(|i| Point3D::new(i as f32 + 1.0, i as f32 + 2.0, i as f32 + 3.0))
             .collect();
 
-        b.iter(|| {
-            points
-                .iter()
-                .map(|p| p.normalize())
-                .collect::<Vec<_>>()
-        });
+        b.iter(|| points.iter().map(|p| p.normalize()).collect::<Vec<_>>());
     });
 
     group.finish();

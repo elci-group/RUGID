@@ -12,7 +12,7 @@ RUGID is a Rust-based GUI framework and rendering engine. It features a custom s
 - **Benchmarks**: `cargo bench`
 
 ### Known Issues / Gotchas
-- **Missing Binary**: Documentation and scripts (e.g., `demos/run_quick_demo.sh`) reference `cargo run --bin rdf_render`, but this binary source (`src/bin/rdf_render.rs`) is currently **missing** from the codebase.
+- **rgpum_test Binary**: `src/bin/rgpum_test.rs` requires the `rgpum` feature; its `[[bin]]` entry in Cargo.toml sets `required-features = ["rgpum"]`, so plain `cargo build` skips it. Build it with `cargo build --features rgpum` (see `docs/technical_directive.md`, P0-1).
 - **Headless Environment**: By default, `src/main.rs` uses a headless platform and outputs SVG frames. Real-time rendering requires a display server and `wgpu` backend (see `RUNNING.md`).
 
 ## Code Structure
@@ -33,7 +33,7 @@ RUGID is a Rust-based GUI framework and rendering engine. It features a custom s
 
 ### Demos
 - `demos/rdf/`: Collection of `.rdf` scene files.
-- `demos/run_quick_demo.sh`: Script to run demos (BROKEN: depends on missing `rdf_render`).
+- `demos/run_quick_demo.sh`: Script to run demos (works: uses the `rdf_render` binary).
 
 ## Conventions
 - **RDF Syntax**: `type:::key[value]::key2[value]` with indentation for hierarchy.
@@ -41,6 +41,6 @@ RUGID is a Rust-based GUI framework and rendering engine. It features a custom s
 - **Testing**: Unit tests are co-located in modules (e.g., `#[cfg(test)] mod tests`).
 
 ## Agent Instructions
-1. **Running Demos**: Do NOT attempt to run `demos/run_quick_demo.sh` or `rdf_render`. Instead, modify `src/main.rs` if you need to create/run a new simulation, or fix the missing binary issue if explicitly asked.
+1. **Running Demos**: To render an RDF scene headlessly, use `cargo run --bin rdf_render` (renders `demo.rdf` → `rdf_output.svg`) or `demos/run_quick_demo.sh`. For new simulations, modify `src/main.rs`. On display-less systems, use the headless binaries and `HeadlessPlatform` — do not expect wgpu windowed apps to open.
 2. **Visual Verification**: The system outputs SVGs to `output/`. Use `ls -l output/` to verify generation.
 3. **Dependencies**: `wgpu` is optional but default. For headless environments, ensure code falls back gracefully or explicitly uses `HeadlessPlatform`.

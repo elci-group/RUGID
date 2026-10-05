@@ -1,6 +1,8 @@
 #!/bin/bash
 # RUGID RDF Demo Suite Runner
 # Quick demo sequence (1 minute)
+#
+# Cross-platform: Also available as run_quick_demo.ps1 (PowerShell) and run_quick_demo.bat (Windows)
 
 echo "=== RUGID RDF Quick Demo (1 minute) ==="
 echo ""
